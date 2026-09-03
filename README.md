@@ -2,34 +2,34 @@
 
 
 
-# [Project Name] 🎯
+# FEAR.EXE 🎯
 
 
 ## Basic Details
-### Team Name: [Name]
+### Team Name: Runtime Terrors
 
 
 ### Team Members
-- Team Lead: [Name] - [College]
+- Team Lead: Madhav S Pillai - Sree Buddha College of Engineering
 - Member 2: [Name] - [College]
 - Member 3: [Name] - [College]
 
 ### Project Description
-[2-3 lines about what your project does]
+FEAR.EXE is a deliberately useless fear-simulation platform that turns everyday fears into interactive browser-based challenges. Users face ridiculous simulations involving cockroaches, snakes, spiders, and lizards, complete with escalating chaos and fake psychological analysis.
 
 ### The Problem (that doesn't exist)
-[What ridiculous problem are you solving?]
+FEAR.EXE solves the completely unnecessary problem of people not being sufficiently afraid while using the internet. It turns everyday fears into ridiculous interactive challenges, because apparently normal web browsing wasn’t stressful enough.
 
 ### The Solution (that nobody asked for)
-[How are you solving it? Keep it fun!]
+FEAR.EXE uses a highly advanced system of unnecessary fear. Users answer a totally scientific™ assessment, receive a questionable psychological profile, and are thrown into interactive fear simulations involving cockroaches, snakes, spiders, and lizards. The longer they survive, the worse it gets—because quitting is apparently not an option.
 
 ## Technical Details
 ### Technologies/Components Used
 For Software:
-- [Languages used]
-- [Frameworks used]
-- [Libraries used]
-- [Tools used]
+- Languages used: HTML5, CSS3, JavaScript
+- Frameworks used: None — built as a standalone web application
+- Libraries used: HTML Canvas API, Web Audio API
+- Tools used: Antigravity IDE, GitHub, Web Browser
 
 For Hardware:
 - [List main components]
@@ -39,7 +39,8 @@ For Hardware:
 ### Implementation
 For Software:
 # Installation
-[commands]
+git clone (https://github.com/tinkerhub/useless_project_temp.git)
+cd FEAR.EXE
 
 # Run
 [commands]
@@ -48,14 +49,14 @@ For Software:
 For Software:
 
 # Screenshots (Add at least 3)
-![Screenshot1](Add screenshot 1 here with proper name)
-*Add caption explaining what this shows*
+![Screenshot1]![alt text](image.png)
+*The front page of the webpage*
 
-![Screenshot2](Add screenshot 2 here with proper name)
-*Add caption explaining what this shows*
+![Screenshot2]![alt text](image-1.png)
+*Selection of what type of fear*
 
-![Screenshot3](Add screenshot 3 here with proper name)
-*Add caption explaining what this shows*
+![Screenshot3]![alt text](image-2.png)
+*Fear simulation*
 
 # Diagrams
 ![Workflow](Add your workflow/architecture diagram here)
@@ -89,7 +90,7 @@ For Hardware:
 [Add any extra demo materials/links]
 
 ## Team Contributions
-- [Name 1]: [Specific contributions]
+- Madhav S Pillai: Designed and developed the complete FEAR.EXE project, including UI/UX, interactive fear simulations, procedural animations, assessment system, psychological profiling, audio integration, game logic, and final presentation.
 - [Name 2]: [Specific contributions]
 - [Name 3]: [Specific contributions]
 
