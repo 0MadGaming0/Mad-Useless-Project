@@ -11,8 +11,6 @@
 
 ### Team Members
 - Team Lead: Madhav S Pillai - Sree Buddha College of Engineering
-- Member 2: [Name] - [College]
-- Member 3: [Name] - [College]
 
 ### Project Description
 FEAR.EXE is a deliberately useless fear-simulation platform that turns everyday fears into interactive browser-based challenges. Users face ridiculous simulations involving cockroaches, snakes, spiders, and lizards, complete with escalating chaos and fake psychological analysis.
@@ -31,10 +29,7 @@ For Software:
 - Libraries used: HTML Canvas API, Web Audio API
 - Tools used: Antigravity IDE, GitHub, Web Browser
 
-For Hardware:
-- [List main components]
-- [List specifications]
-- [List tools required]
+For Hardware: N/A
 
 ### Implementation
 For Software:
@@ -43,7 +38,7 @@ git clone (https://github.com/tinkerhub/useless_project_temp.git)
 cd FEAR.EXE
 
 # Run
-[commands]
+[Execute index.html as live server]
 
 ### Project Documentation
 For Software:
