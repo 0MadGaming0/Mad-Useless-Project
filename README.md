@@ -4,6 +4,7 @@
 
 # FEAR.EXE 🎯
 
+# Live Demo:https://fear-exe.vercel.app/
 
 ## Basic Details
 ### Team Name: Runtime Terrors
@@ -38,7 +39,7 @@ git clone (https://github.com/tinkerhub/useless_project_temp.git)
 cd FEAR.EXE
 
 # Run
-[Execute index.html as live server]
+Execute index.html as live server
 
 ### Project Documentation
 For Software:
@@ -54,40 +55,13 @@ For Software:
 *Fear simulation*
 
 # Diagrams
-![Workflow](Add your workflow/architecture diagram here)
-*Add caption explaining your workflow*
+![Workflow]![alt text](image-3.png)
+*Workflow of FEAR.EXE*
 
-For Hardware:
-
-# Schematic & Circuit
-![Circuit](Add your circuit diagram here)
-*Add caption explaining connections*
-
-![Schematic](Add your schematic diagram here)
-*Add caption explaining the schematic*
-
-# Build Photos
-![Components](Add photo of your components here)
-*List out all components shown*
-
-![Build](Add photos of build process here)
-*Explain the build steps*
-
-![Final](Add photo of final product here)
-*Explain the final build*
-
-### Project Demo
-# Video
-[Add your demo video link here]
-*Explain what the video demonstrates*
-
-# Additional Demos
-[Add any extra demo materials/links]
 
 ## Team Contributions
 - Madhav S Pillai: Designed and developed the complete FEAR.EXE project, including UI/UX, interactive fear simulations, procedural animations, assessment system, psychological profiling, audio integration, game logic, and final presentation.
-- [Name 2]: [Specific contributions]
-- [Name 3]: [Specific contributions]
+
 
 ---
 Made with ❤️ at TinkerHub Useless Projects 
