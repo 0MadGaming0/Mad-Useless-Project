@@ -57,7 +57,7 @@ For Software:
 # Diagrams
 ![Workflow]
 <img width="1280" alt="" src="fear_exe_workflow.png" />
-*Add caption explaining your workflow*
+*Workflow of FEAR.EXE*
 
 
 ## Team Contributions
