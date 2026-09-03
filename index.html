@@ -1,1 +1,3590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FEAR.EXE — A Completely Unnecessary Survival Experience</title>
+  <meta name="description" content="Choose your fear. We'll handle the rest. A completely unnecessary survival experience." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    :root {
+      --bg: #0a0a0b;
+      --bg2: #111114;
+      --surface: #18181c;
+      --surface2: #222228;
+      --border: rgba(255,255,255,0.08);
+      --border-hover: rgba(255,255,255,0.18);
+      --text-primary: #f0f0f2;
+      --text-secondary: #8a8a9a;
+      --text-muted: #555566;
+      --accent: #e63946;
+      --accent-dim: rgba(230,57,70,0.15);
+      --accent-glow: rgba(230,57,70,0.35);
+      --accent-amber: #f59e0b;
+      --accent-green: #10b981;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Inter', sans-serif;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --transition: 0.28s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    html { font-size: 16px; scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: var(--sans);
+      min-height: 100vh;
+      overflow-x: hidden;
+      cursor: default;
+      user-select: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+
+    /* ============================================================
+       SCREENS & LAYOUT
+    ============================================================ */
+    .screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.45s cubic-bezier(0.4,0,0.2,1), transform 0.45s cubic-bezier(0.4,0,0.2,1);
+      transform: scale(0.99);
+      z-index: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    .screen.active {
+      opacity: 1;
+      pointer-events: all;
+      transform: scale(1);
+    }
+
+    /* SHARED TOP NAV */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 36px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      background: rgba(10,10,11,0.85);
+      backdrop-filter: blur(12px);
+      z-index: 20;
+    }
+    .nav-logo {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+    .nav-status {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      letter-spacing: 0.12em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav-status::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(0.7); }
+    }
+
+    .judge-toggle {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      padding: 6px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .judge-toggle:hover { border-color: var(--accent-amber); color: var(--accent-amber); }
+    .judge-toggle.active {
+      background: rgba(245,158,11,0.15);
+      border-color: var(--accent-amber);
+      color: var(--accent-amber);
+      box-shadow: 0 0 16px rgba(245,158,11,0.25);
+    }
+
+    /* ============================================================
+       BUTTONS & INTERACTIVE
+    ============================================================ */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 14px 32px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-primary);
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: all var(--transition);
+      position: relative;
+      overflow: hidden;
+      white-space: nowrap;
+      user-select: none;
+    }
+    .btn:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+    }
+    .btn:active { transform: translateY(0); }
+    .btn-primary {
+      background: var(--text-primary);
+      color: var(--bg);
+      border-color: transparent;
+      font-weight: 700;
+    }
+    .btn-primary:hover { background: #dde0e8; box-shadow: 0 10px 32px rgba(240,240,242,0.15); }
+    .btn-danger {
+      background: var(--accent);
+      color: #fff;
+      border-color: transparent;
+    }
+    .btn-danger:hover { background: #c1121f; box-shadow: 0 8px 30px var(--accent-glow); }
+    .btn-ghost { background: transparent; border-color: var(--border); }
+    .btn-ghost:hover { border-color: var(--border-hover); background: rgba(255,255,255,0.03); }
+
+    /* ============================================================
+       LANDING SCREEN
+    ============================================================ */
+    #screen-landing { background: var(--bg); }
+    .landing-grid-bg {
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+      background-size: 72px 72px;
+      pointer-events: none; z-index: 0;
+    }
+    #screen-landing > * { position: relative; z-index: 1; }
+    .landing-body {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; padding: 28px 32px; gap: 0;
+    }
+    .landing-eyebrow {
+      font-family: var(--mono); font-size: 11px;
+      color: var(--text-muted); letter-spacing: 0.22em; margin-bottom: 20px;
+      opacity: 0; animation: fadeUp 0.8s 0.2s forwards;
+    }
+    .landing-title {
+      font-size: clamp(56px, 10vw, 136px); font-weight: 900;
+      letter-spacing: -0.04em; line-height: 0.88; margin-bottom: 22px;
+      opacity: 0; animation: fadeUp 0.8s 0.4s forwards;
+    }
+    .landing-tagline {
+      font-size: clamp(16px, 2.2vw, 24px); font-weight: 300;
+      color: var(--text-secondary); margin-bottom: 12px;
+      opacity: 0; animation: fadeUp 0.8s 0.6s forwards;
+    }
+    .landing-sub {
+      font-size: clamp(13px, 1.4vw, 14px); color: var(--text-muted); margin-bottom: 26px;
+      opacity: 0; animation: fadeUp 0.8s 0.8s forwards; line-height: 1.6;
+    }
+    .landing-warning {
+      font-family: var(--mono); font-size: 11px; color: var(--accent);
+      letter-spacing: 0.08em; margin-bottom: 24px;
+      opacity: 0; animation: fadeUp 0.8s 1s forwards;
+    }
+    .landing-cta-group {
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+      opacity: 0; animation: fadeUp 0.8s 1.2s forwards;
+    }
+    .btn-begin {
+      padding: 16px 54px; font-size: 14px; font-weight: 700;
+      letter-spacing: 0.08em; background: var(--text-primary);
+      color: var(--bg); border: none; position: relative; overflow: hidden;
+    }
+    .btn-begin::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transform: translateX(-100%); transition: transform 0.6s ease;
+    }
+    .btn-begin:hover::after { transform: translateX(100%); }
+    .landing-microcopy { font-family: var(--mono); font-size: 11px; color: var(--text-muted); letter-spacing: 0.1em; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(22px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ============================================================
+       FEAR ASSESSMENT SCREEN
+    ============================================================ */
+    .assess-card {
+      width: 100%; max-width: 620px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 42px 36px;
+      display: flex; flex-direction: column; gap: 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .assess-tracker {
+      display: flex; justify-content: space-between; align-items: center;
+      font-family: var(--mono); font-size: 10px; color: var(--text-muted);
+      letter-spacing: 0.15em; border-bottom: 1px solid var(--border);
+      padding-bottom: 14px;
+    }
+    .assess-q-title {
+      font-size: clamp(20px, 3vw, 26px); font-weight: 800;
+      line-height: 1.35; letter-spacing: -0.02em;
+    }
+    .assess-options {
+      display: grid; grid-template-columns: 1fr; gap: 12px;
+    }
+    .assess-btn {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); background: var(--bg2);
+      color: var(--text-primary); font-family: var(--sans);
+      font-size: 14px; font-weight: 500; cursor: pointer;
+      text-align: left; transition: all var(--transition);
+    }
+    .assess-btn:hover {
+      border-color: var(--border); background: var(--bg2);
+      transform: none;
+    }
+    .assess-btn .assess-key {
+      font-family: var(--mono); font-size: 10px; color: var(--text-muted);
+      letter-spacing: 0.1em;
+    }
+
+    /* ASSESSMENT PROFILE RESULT */
+    .psy-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
+      margin: 12px 0;
+    }
+    .psy-stat {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 16px;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .psy-label { font-family: var(--mono); font-size: 9px; color: var(--text-muted); letter-spacing: 0.18em; }
+    .psy-val { font-family: var(--mono); font-size: 24px; font-weight: 700; color: var(--text-primary); }
+
+    /* ============================================================
+       FEAR RECOMMENDATION SCREEN
+    ============================================================ */
+    .rec-box {
+      width: 100%; max-width: 540px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 44px 36px;
+      text-align: center; display: flex; flex-direction: column;
+      align-items: center; gap: 20px;
+    }
+    .rec-badge {
+      font-family: var(--mono); font-size: 10px; color: var(--accent);
+      letter-spacing: 0.2em;
+    }
+    .rec-fear-name {
+      font-size: 38px; font-weight: 900; letter-spacing: -0.02em;
+    }
+    .rec-reason {
+      font-size: 14px; color: var(--text-secondary); line-height: 1.6;
+      font-style: italic; max-width: 420px;
+    }
+    .rec-actions {
+      display: flex; gap: 14px; margin-top: 10px; width: 100%; justify-content: center;
+    }
+
+    /* ============================================================
+       FEAR SELECTION CARDS
+    ============================================================ */
+    #screen-fear-select { background: var(--bg); overflow-y: auto; }
+    .fear-select-body {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; padding: 40px 24px; gap: 36px;
+    }
+    .fear-select-title {
+      font-size: clamp(36px, 5vw, 68px); font-weight: 900;
+      letter-spacing: -0.03em; margin-bottom: 8px; text-align: center;
+    }
+    .fear-select-sub {
+      font-family: var(--mono); font-size: 12px; color: var(--text-muted); letter-spacing: 0.1em;
+      text-align: center;
+    }
+    .fear-cards {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px;
+      width: 100%; max-width: 1180px;
+    }
+    @media (max-width: 860px) { .fear-cards { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 480px) { .fear-cards { grid-template-columns: 1fr; } }
+    .fear-card {
+      position: relative; background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 32px 18px 24px; display: flex; flex-direction: column;
+      align-items: center; gap: 12px; cursor: pointer;
+      transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1); overflow: hidden;
+      text-align: center;
+    }
+    .fear-card::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(circle at 50% 0%, rgba(230,57,70,0.1), transparent 70%);
+      opacity: 0; transition: opacity 0.35s;
+    }
+    .fear-card:hover::before { opacity: 1; }
+    .fear-card:hover {
+      border-color: rgba(230,57,70,0.35);
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.55), 0 0 0 1px rgba(230,57,70,0.2);
+    }
+    .fear-card-emoji {
+      font-size: 48px; line-height: 1; display: inline-flex;
+      align-items: center; justify-content: center; height: 56px;
+      transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .fear-card:hover .fear-card-emoji { transform: scale(1.2) rotate(-6deg); }
+    .fear-card-name {
+      font-family: var(--mono); font-size: 12px; font-weight: 700;
+      letter-spacing: 0.18em;
+    }
+    .fear-card-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+    .fear-card-stats {
+      width: 100%; border-top: 1px solid var(--border);
+      padding-top: 10px; margin-top: 4px;
+      display: flex; justify-content: space-around;
+      font-family: var(--mono); font-size: 9px; color: var(--text-muted);
+    }
+    .fear-card-confirm {
+      font-family: var(--mono); font-size: 10px; color: var(--accent);
+      letter-spacing: 0.15em; opacity: 0; transition: opacity 0.2s;
+    }
+    .fear-card:hover .fear-card-confirm { opacity: 1; }
+
+    /* ============================================================
+       FEAR PROFILE DOSSIER
+    ============================================================ */
+    .profile-card {
+      width: 100%; max-width: 600px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 40px 36px;
+      display: flex; flex-direction: column; gap: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .profile-header {
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid var(--border); padding-bottom: 16px;
+    }
+    .profile-title { font-size: 28px; font-weight: 800; }
+    .profile-threat-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+    }
+    .profile-threat-box {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 14px 12px;
+      text-align: center;
+    }
+    .profile-weaknesses {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 16px;
+      font-size: 13px; color: var(--text-secondary); line-height: 1.7;
+    }
+
+    /* ============================================================
+       HUMAN VERIFICATION // 2-STEP (CAPTCHA)
+    ============================================================ */
+    .verify-card {
+      width: 100%; max-width: 520px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 36px 30px;
+      display: flex; flex-direction: column; gap: 18px;
+    }
+    .captcha-check-box {
+      display: flex; align-items: center; gap: 16px;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 16px 20px;
+      cursor: pointer; transition: all var(--transition);
+    }
+    .captcha-check-box:hover { border-color: var(--border-hover); }
+    .captcha-box-square {
+      width: 24px; height: 24px; border: 2px solid var(--border-hover);
+      border-radius: 4px; display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700; color: var(--accent-green);
+    }
+    .captcha-check-box.checked .captcha-box-square {
+      background: rgba(16,185,129,0.15); border-color: var(--accent-green);
+    }
+    .tile-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+    }
+    .tile-item {
+      aspect-ratio: 1; background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); display: flex; flex-direction: column;
+      align-items: center; justify-content: center; font-size: 11px;
+      cursor: pointer; transition: all 0.15s ease; padding: 10px;
+      text-align: center; font-family: var(--mono); color: var(--text-muted);
+      gap: 6px; position: relative; user-select: none;
+    }
+    .tile-item:hover { border-color: var(--accent); background: rgba(230,57,70,0.06); }
+    .tile-item.selected {
+      border-color: var(--accent-green); background: rgba(16,185,129,0.12);
+      color: #fff;
+    }
+    .tile-item.selected::after {
+      content: '✓'; position: absolute; top: 6px; right: 8px;
+      font-size: 11px; font-weight: 900; color: var(--accent-green);
+    }
+    .tile-emoji { font-size: 26px; }
+
+    /* REFLEX MINI-GAME STYLES */
+    .reflex-track {
+      width: 100%; height: 24px; background: var(--bg2);
+      border: 1px solid var(--border); border-radius: 12px;
+      position: relative; overflow: hidden; margin: 10px 0;
+    }
+    .reflex-target-zone {
+      position: absolute; top: 0; bottom: 0; left: 40%; width: 22%;
+      background: rgba(16,185,129,0.25); border-left: 2px dashed var(--accent-green);
+      border-right: 2px dashed var(--accent-green); display: flex;
+      align-items: center; justify-content: center; font-family: var(--mono);
+      font-size: 8px; font-weight: 700; color: var(--accent-green); letter-spacing: 0.05em;
+    }
+    .reflex-needle {
+      position: absolute; top: 0; bottom: 0; width: 6px;
+      background: var(--accent); border-radius: 3px;
+      box-shadow: 0 0 10px var(--accent); left: 0%;
+    }
+
+    /* ============================================================
+       FAKE LOGIN SCREEN
+    ============================================================ */
+    #screen-login { background: var(--bg); align-items: center; justify-content: center; }
+    .login-card {
+      width: 100%; max-width: 420px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 44px 36px; display: flex; flex-direction: column; gap: 20px;
+      position: relative;
+    }
+    .login-title { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 6px; }
+    .login-sub { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+    .input-group { display: flex; flex-direction: column; gap: 6px; }
+    .input-label { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 0.15em; }
+    .input-field {
+      background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 12px 16px; color: var(--text-primary); font-family: var(--sans);
+      font-size: 14px; outline: none; transition: border-color var(--transition); cursor: text;
+    }
+    .input-field:focus { border-color: var(--border-hover); }
+    .input-field::placeholder { color: var(--text-muted); }
+    .login-btn-container { position: relative; height: 48px; overflow: visible; }
+    #btn-login {
+      position: absolute; width: 100%; font-size: 13px; font-weight: 700;
+      letter-spacing: 0.08em; top: 0; left: 0;
+    }
+    .login-msg {
+      font-family: var(--mono); font-size: 11px; color: var(--accent); text-align: center;
+      min-height: 16px; letter-spacing: 0.05em; opacity: 0; transition: opacity 0.3s;
+    }
+    .login-msg.visible { opacity: 1; }
+    .login-attempt-counter {
+      font-family: var(--mono); font-size: 10px; color: var(--text-muted);
+      text-align: center; letter-spacing: 0.1em;
+    }
+    /* ============================================================
+       FEAR TRAINING SCREEN
+    ============================================================ */
+    .train-container {
+      width: 100%; max-width: 680px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 32px; display: flex; flex-direction: column; gap: 18px;
+    }
+    .train-canvas-box {
+      width: 100%; height: 260px; background: var(--bg2);
+      border: 1px dashed var(--border); border-radius: var(--radius-sm);
+      position: relative; overflow: hidden;
+    }
+    #canvas-training { width: 100%; height: 100%; display: block; }
+    .train-timer-bar {
+      height: 4px; background: var(--accent); width: 100%;
+      transition: width 1s linear; border-radius: 2px;
+    }
+
+    /* ============================================================
+       MAIN EXPERIENCE & HUD
+    ============================================================ */
+    #screen-experience { background: var(--bg); overflow: hidden; }
+    .exp-hud-top {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      padding: 16px 28px; flex-shrink: 0; border-bottom: 1px solid var(--border);
+      position: relative; z-index: 10; background: rgba(10,10,11,0.7);
+      backdrop-filter: blur(8px);
+    }
+    .hud-meta { display: flex; flex-direction: column; gap: 3px; }
+    .hud-logo { font-family: var(--mono); font-size: 13px; font-weight: 700; letter-spacing: 0.1em; }
+    .hud-submeta { font-family: var(--mono); font-size: 9px; color: var(--text-muted); letter-spacing: 0.15em; }
+    .hud-right { text-align: right; display: flex; flex-direction: column; gap: 4px; }
+    .hud-label { font-family: var(--mono); font-size: 9px; color: var(--text-muted); letter-spacing: 0.2em; }
+    .fear-bar { font-family: var(--mono); font-size: 13px; color: var(--accent); letter-spacing: 0.05em; }
+    .exp-phase-badge {
+      font-family: var(--mono); font-size: 10px; font-weight: 700;
+      color: var(--accent-amber); letter-spacing: 0.12em;
+    }
+    .exp-arena { flex: 1; position: relative; overflow: hidden; }
+    .exp-hud-bottom {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      padding: 14px 28px; flex-shrink: 0; border-top: 1px solid var(--border);
+      position: relative; z-index: 10; background: rgba(10,10,11,0.7);
+      backdrop-filter: blur(8px);
+    }
+    .hud-timer { font-family: var(--mono); font-size: 22px; font-weight: 700; }
+    .hud-esc {
+      font-family: var(--mono); font-size: 11px; color: var(--text-muted); letter-spacing: 0.1em;
+      cursor: pointer; border: 1px solid var(--border); padding: 6px 12px; border-radius: 4px;
+      background: transparent; transition: all var(--transition);
+    }
+    .hud-esc:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* FEAR AI & SYSTEM OVERLAYS */
+    #fear-ai-box {
+      position: absolute; top: 16px; left: 24px; z-index: 15;
+      background: rgba(24,24,28,0.9); border: 1px solid var(--border);
+      border-left: 2px solid var(--accent-amber); border-radius: var(--radius-sm);
+      padding: 10px 14px; max-width: 280px; opacity: 0; transform: translateY(-8px);
+      transition: all 0.35s ease-out; pointer-events: none;
+    }
+    #fear-ai-box.visible { opacity: 1; transform: translateY(0); }
+    .ai-label { font-family: var(--mono); font-size: 8px; color: var(--accent-amber); letter-spacing: 0.2em; margin-bottom: 4px; }
+    .ai-text { font-family: var(--mono); font-size: 11px; color: var(--text-primary); line-height: 1.4; }
+
+    #system-message {
+      position: fixed; bottom: 74px; left: 28px; z-index: 100; max-width: 320px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-left: 2px solid var(--accent); border-radius: var(--radius-sm);
+      padding: 12px 16px; opacity: 0; transform: translateY(12px);
+      transition: opacity 0.4s, transform 0.4s; pointer-events: none;
+    }
+    #system-message.visible { opacity: 1; transform: translateY(0); }
+    .sys-msg-label { font-family: var(--mono); font-size: 9px; color: var(--accent); letter-spacing: 0.2em; margin-bottom: 4px; }
+    .sys-msg-text { font-family: var(--mono); font-size: 11px; color: var(--text-secondary); line-height: 1.5; }
+
+    /* RANDOM IN-GAME EVENT POPUPS */
+    .random-event-popup {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
+      background: var(--surface); border: 1px solid var(--accent);
+      box-shadow: 0 16px 60px rgba(230,57,70,0.3); border-radius: var(--radius);
+      padding: 24px 32px; text-align: center; z-index: 30; opacity: 0;
+      pointer-events: none; transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .random-event-popup.visible {
+      opacity: 1; transform: translate(-50%, -50%) scale(1); pointer-events: all;
+    }
+
+    /* SAFE ZONE POPUP */
+    .fake-safe-zone {
+      position: absolute; width: 120px; height: 120px;
+      border: 2px dashed var(--accent-green); background: rgba(16,185,129,0.08);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono); font-size: 10px; color: var(--accent-green);
+      letter-spacing: 0.1em; pointer-events: none; opacity: 0; transition: opacity 0.3s;
+      z-index: 6; text-align: center;
+    }
+    .fake-safe-zone.visible { opacity: 1; }
+
+    /* ============================================================
+       HORROR ANIMATIONS & RAGEBAIT OVERLAYS
+    ============================================================ */
+    #horror-vignette {
+      position: absolute; inset: 0; pointer-events: none; z-index: 8;
+      box-shadow: inset 0 0 80px rgba(230,57,70,0.25);
+      opacity: 0.4; transition: opacity 0.4s;
+      animation: horrorVignettePulse 2.2s ease-in-out infinite;
+    }
+    #creature-horror-scene {
+      position: absolute; inset: 0; z-index: 9; display: flex;
+      flex-direction: column; align-items: center; justify-content: center;
+      gap: 12px; pointer-events: none; opacity: 0; transform: scale(1.04);
+      transition: opacity .18s ease, transform .6s ease;
+      background: radial-gradient(circle, rgba(230,57,70,.2), transparent 55%);
+    }
+    #creature-horror-scene.visible { opacity: 1; transform: scale(1); }
+    #creature-horror-eyes {
+      font: 900 clamp(34px,6vw,72px)/1 var(--mono); color: #ff3848;
+      letter-spacing: .16em; text-shadow: 0 0 20px rgba(255,40,60,.9);
+      animation: creature-blink .6s steps(2, end) infinite;
+    }
+    #creature-horror-text {
+      max-width: 85%; text-align: center; font: 800 clamp(16px,2.6vw,30px)/1.2 var(--mono);
+      color: #fff; letter-spacing: .08em; text-shadow: 0 3px 18px #000;
+    }
+    #creature-horror-scene.snake { background: radial-gradient(circle, rgba(87,170,34,.2), transparent 55%); }
+    #creature-horror-scene.spider { background: radial-gradient(circle, rgba(135,75,180,.2), transparent 55%); }
+    #creature-horror-scene.rat { background: radial-gradient(circle, rgba(160,72,72,.25), transparent 55%); }
+    @keyframes creature-blink { 50% { opacity: .1; } }
+    @keyframes horrorVignettePulse {
+      0%, 100% { opacity: 0.3; box-shadow: inset 0 0 60px rgba(230,57,70,0.2); }
+      50% { opacity: 0.75; box-shadow: inset 0 0 110px rgba(230,57,70,0.45); }
+    }
+
+    #horror-flash-text {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      font-size: clamp(38px, 8vw, 84px); font-weight: 900; color: var(--accent);
+      letter-spacing: 0.12em; text-transform: uppercase; text-align: center;
+      z-index: 25; pointer-events: none; opacity: 0;
+      text-shadow: 0 0 30px rgba(230,57,70,0.8), 2px 2px 0px cyan, -2px -2px 0px red;
+      transition: opacity 0.15s ease-out;
+    }
+    #horror-flash-text.visible {
+      opacity: 1; animation: glitchText 0.35s steps(2) infinite;
+    }
+    @keyframes glitchText {
+      0% { transform: translate(-50%, -50%) skew(0deg); }
+      33% { transform: translate(-48%, -52%) skew(2deg); }
+      66% { transform: translate(-52%, -48%) skew(-2deg); }
+      100% { transform: translate(-50%, -50%) skew(0deg); }
+    }
+
+    #rage-meter-badge {
+      position: absolute; top: 16px; right: 24px; z-index: 15;
+      background: rgba(24,24,28,0.9); border: 1px solid rgba(230,57,70,0.4);
+      border-radius: 20px; padding: 6px 14px; font-family: var(--mono);
+      font-size: 10px; font-weight: 700; color: var(--accent);
+      letter-spacing: 0.08em; display: flex; align-items: center; gap: 6px;
+      box-shadow: 0 4px 16px rgba(230,57,70,0.15);
+    }
+
+    #safe-mode-trap {
+      position: absolute; bottom: 20px; right: 28px; z-index: 15;
+      background: rgba(16,185,129,0.12); border: 1px dashed var(--accent-green);
+      color: var(--accent-green); font-family: var(--mono); font-size: 10px;
+      font-weight: 700; padding: 8px 14px; border-radius: 6px; cursor: pointer;
+      letter-spacing: 0.08em; transition: all 0.2s;
+    }
+    #safe-mode-trap:hover {
+      background: rgba(16,185,129,0.25); transform: scale(1.04);
+    }
+
+    /* ============================================================
+       SURVIVAL REPORT & RANK
+    ============================================================ */
+    .report-card {
+      width: 100%; max-width: 640px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 40px 36px; display: flex; flex-direction: column; gap: 20px;
+    }
+    .rank-badge {
+      font-size: 52px; font-weight: 900; font-family: var(--mono);
+      line-height: 1; color: var(--accent-amber);
+    }
+    .rank-title { font-size: 16px; font-weight: 700; color: var(--text-primary); letter-spacing: 0.05em; }
+
+    /* COPY TOAST */
+    #copy-toast {
+      position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-20px);
+      background: var(--accent-green); color: #000; font-family: var(--mono);
+      font-size: 11px; font-weight: 700; padding: 8px 18px; border-radius: 20px;
+      opacity: 0; pointer-events: none; transition: all 0.3s; z-index: 500;
+    }
+    #copy-toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* SCREEN SHAKE & GLITCH */
+    @keyframes shake {
+      0%, 100% { transform: translate(0,0); }
+      20% { transform: translate(-3px, 2px); }
+      40% { transform: translate(3px, -2px); }
+      60% { transform: translate(-2px, 3px); }
+      80% { transform: translate(2px, -1px); }
+    }
+    .shaking { animation: shake 0.15s ease-in-out; }
+
+    #transition-overlay {
+      position: fixed; inset: 0; background: var(--bg); z-index: 300;
+      opacity: 0; pointer-events: none; transition: opacity 0.35s;
+    }
+    #transition-overlay.active { opacity: 1; pointer-events: all; }
+
+    @media (max-width: 640px) {
+      .nav { padding: 14px 18px; }
+      .landing-body { padding: 24px 18px; }
+      .assess-card, .rec-box, .profile-card, .verify-card, .login-card, .train-container, .report-card {
+        padding: 24px 18px; margin: 12px;
+      }
+      .rec-actions { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div id="transition-overlay"></div>
+  <div id="copy-toast">REPORT COPIED TO CLIPBOARD</div>
+
+  <!-- SYSTEM MESSAGE -->
+  <div id="system-message" role="status" aria-live="polite">
+    <div class="sys-msg-label">SYSTEM</div>
+    <div class="sys-msg-text" id="sys-msg-text"></div>
+  </div>
+
+  <!-- ==================== 1. LANDING ==================== -->
+  <section id="screen-landing" class="screen active" aria-label="Landing page">
+    <div class="landing-grid-bg" aria-hidden="true"></div>
+    <nav class="nav">
+      <div class="nav-logo">
+        FEAR.EXE
+      </div>
+      <div class="nav-right">
+        <button id="btn-judge-toggle" class="judge-toggle" title="Accelerates experience for hackathon judges">
+          ⚡ DEMO MODE: <span id="judge-label">OFF</span>
+        </button>
+        <div class="nav-status">SYSTEM STATUS: UNSTABLE</div>
+      </div>
+    </nav>
+    <div class="landing-body">
+      <p class="landing-eyebrow">PROTOCOL: FEAR-04 &nbsp;·&nbsp; PURPOSE: NONE</p>
+      <h1 class="landing-title">FEAR<br>.EXE</h1>
+      <p class="landing-tagline">A completely unnecessary survival experience.</p>
+      <p class="landing-sub">Choose your fear.<br>We'll handle the rest.</p>
+      <p class="landing-warning">⚠ THIS WEBSITE HAS NO PRACTICAL PURPOSE.</p>
+      <div class="landing-cta-group">
+        <button id="btn-begin" class="btn btn-begin">BEGIN EXPERIENCE</button>
+        <span class="landing-microcopy">You have been warned.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 2. FEAR ASSESSMENT ==================== -->
+  <section id="screen-assessment" class="screen" aria-label="Psychological assessment">
+    <nav class="nav">
+      <div class="nav-logo">FEAR.EXE // ASSESSMENT</div>
+      <div class="nav-status">PSYCH-EVAL: ACTIVE</div>
+    </nav>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:24px;">
+      <div class="assess-card">
+        <div class="assess-tracker">
+          <span id="assess-tracker-text">QUESTION 01 / 02</span>
+          <span>EVALUATION PROTOCOL</span>
+        </div>
+        <h2 class="assess-q-title" id="assess-q-title">A dark room contains something unknown. What is your immediate course of action?</h2>
+        <div class="assess-options" id="assess-options-box">
+          <!-- Dynamically inserted -->
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 2B. ASSESSMENT ANALYSIS ==================== -->
+  <section id="screen-assessment-analysis" class="screen" aria-label="Analyzing psychological responses">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;text-align:center;padding:24px;">
+      <p style="font-family:var(--mono);font-size:11px;color:var(--text-muted);letter-spacing:0.2em;">ANALYZING RESPONSES...</p>
+      <h2 style="font-size:clamp(28px,5vw,52px);font-weight:900;">YOUR PSYCHOLOGICAL<br>PROFILE</h2>
+      <div style="width:280px;height:3px;background:var(--surface2);border-radius:2px;overflow:hidden;">
+        <div id="assess-progress-bar" style="height:100%;width:0%;background:var(--accent);transition:width 0.1s linear;"></div>
+      </div>
+      <div class="psy-grid" style="width:100%;max-width:440px;">
+        <div class="psy-stat"><span class="psy-label">COURAGE</span><span class="psy-val" id="psy-courage">--%</span></div>
+        <div class="psy-stat"><span class="psy-label">COMMON SENSE</span><span class="psy-val" id="psy-sense">--%</span></div>
+        <div class="psy-stat"><span class="psy-label">PANIC INDEX</span><span class="psy-val" id="psy-panic">--%</span></div>
+        <div class="psy-stat"><span class="psy-label">QUESTIONABLE</span><span class="psy-val" id="psy-questionable">--%</span></div>
+      </div>
+      <p style="font-size:14px;color:var(--text-secondary);font-style:italic;" id="assess-concl-text">"Interesting. We are deeply concerned."</p>
+      <button id="btn-assess-continue" class="btn btn-primary" style="margin-top:12px;">PROCEED TO RECOMMENDATION →</button>
+    </div>
+  </section>
+
+  <!-- ==================== 3. FEAR RECOMMENDATION ==================== -->
+  <section id="screen-recommendation" class="screen" aria-label="Fear recommendation">
+    <nav class="nav">
+      <div class="nav-logo">FEAR.EXE // RECOMMENDATION</div>
+      <div class="nav-status">MATCH: 98.4%</div>
+    </nav>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:24px;">
+      <div class="rec-box">
+        <span class="rec-badge">BASED ON YOUR QUESTIONABLE DECISIONS</span>
+        <h2 class="rec-fear-name" id="rec-fear-name">RECOMMENDED: COCKROACH</h2>
+        <p class="rec-reason" id="rec-fear-reason">"You appear to possess zero situational awareness and a tendency to freeze under mild digital pressure."</p>
+        <div class="rec-actions">
+          <button id="btn-rec-accept" class="btn btn-primary">ACCEPT MY FATE</button>
+          <button id="btn-rec-custom" class="btn btn-ghost">CHOOSE SOMETHING ELSE</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 4. FEAR SELECTION ==================== -->
+  <section id="screen-fear-select" class="screen" aria-label="Fear selection">
+    <nav class="nav">
+      <div class="nav-logo">FEAR.EXE</div>
+      <div class="nav-status">THREAT: PENDING</div>
+    </nav>
+    <div class="fear-select-body">
+      <div>
+        <h2 class="fear-select-title">CHOOSE YOUR FEAR</h2>
+        <p class="fear-select-sub">THERE IS NO CORRECT ANSWER.</p>
+      </div>
+      <div class="fear-cards" role="group" aria-label="Select a fear">
+        <button class="fear-card" data-fear="cockroach">
+          <span class="fear-card-emoji">🪳</span>
+          <span class="fear-card-name">COCKROACH</span>
+          <span class="fear-card-desc">They move when you stop.</span>
+          <div class="fear-card-stats">
+            <span>DANGER: 88%</span>
+            <span>ANNOYANCE: MAX</span>
+          </div>
+          <span class="fear-card-confirm">ARE YOU SURE?</span>
+        </button>
+        <button class="fear-card" data-fear="snake">
+          <span class="fear-card-emoji">
+            <svg viewBox="0 0 120 150" width="52" height="64" fill="none" xmlns="http://www.w3.org/2000/svg" style="overflow:visible;">
+              <path d="M84 28 C64 38 46 54 62 76 C78 98 80 114 54 128 C30 140 16 122 18 102 C20 86 36 82 42 92 C46 98 40 106 32 104" stroke="#68be22" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M84 28 C64 38 46 54 62 76 C78 98 80 114 54 128 C30 140 16 122 18 102 C20 86 36 82 42 92 C46 98 40 106 32 104" stroke="#489412" stroke-width="16" stroke-dasharray="10 10" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M80 32 C62 44 48 58 62 76 C74 94 74 110 52 122" stroke="rgba(255,255,255,0.5)" stroke-width="3" stroke-linecap="round"/>
+              <path d="M92 22 Q102 18 106 10 M106 10 L112 8 M106 10 L110 14" stroke="#e64a19" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+              <ellipse cx="82" cy="26" rx="15" ry="13" fill="#78cb26" transform="rotate(-15 82 26)"/>
+              <ellipse cx="80" cy="24" rx="12" ry="9" fill="#92e434" transform="rotate(-15 80 24)"/>
+              <circle cx="79" cy="18" r="6" fill="#ffffff"/>
+              <circle cx="81" cy="17.5" r="2.6" fill="#111111"/>
+              <circle cx="79.5" cy="16" r="1.1" fill="#ffffff"/>
+              <circle cx="90" cy="25" r="6.5" fill="#ffffff"/>
+              <circle cx="92" cy="24.5" r="2.8" fill="#111111"/>
+              <circle cx="90.5" cy="23" r="1.2" fill="#ffffff"/>
+            </svg>
+          </span>
+          <span class="fear-card-name">SNAKE</span>
+          <span class="fear-card-desc">Don't let it catch your cursor.</span>
+          <div class="fear-card-stats">
+            <span>DANGER: 94%</span>
+            <span>SPEED: FAST</span>
+          </div>
+          <span class="fear-card-confirm">ARE YOU SURE?</span>
+        </button>
+        <button class="fear-card" data-fear="spider">
+          <span class="fear-card-emoji">🕷</span>
+          <span class="fear-card-name">SPIDER</span>
+          <span class="fear-card-desc">Clean the webs before it's too late.</span>
+          <div class="fear-card-stats">
+            <span>DANGER: 78%</span>
+            <span>TRAP: 100%</span>
+          </div>
+          <span class="fear-card-confirm">ARE YOU SURE?</span>
+        </button>
+        <button class="fear-card" data-fear="lizard">
+          <span class="fear-card-emoji">🦎</span>
+          <span class="fear-card-name">LIZARD</span>
+          <span class="fear-card-desc">Apparently, your cursor looks delicious.</span>
+          <div class="fear-card-stats">
+            <span>DANGER: 85%</span>
+            <span>AIM: DEADLY</span>
+          </div>
+          <span class="fear-card-confirm">ARE YOU SURE?</span>
+        </button>
+</div>
+    </div>
+  </section>
+
+  <!-- ==================== 5. FEAR PROFILE ==================== -->
+  <section id="screen-profile" class="screen" aria-label="Fear threat profile">
+    <nav class="nav">
+      <div class="nav-logo">FEAR.EXE // THREAT DOSSIER</div>
+      <div class="nav-status">CLASSIFIED</div>
+    </nav>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:24px;">
+      <div class="profile-card">
+        <div class="profile-header">
+          <div>
+            <span style="font-family:var(--mono);font-size:10px;color:var(--text-muted);letter-spacing:0.2em;">TARGET ENTITY</span>
+            <h2 class="profile-title" id="dossier-name">THREAT: SNAKE</h2>
+          </div>
+          <span id="dossier-badge" style="font-family:var(--mono);font-size:11px;color:var(--accent);">LEVEL 4 HAZARD</span>
+        </div>
+        <div class="profile-threat-grid">
+          <div class="profile-threat-box">
+            <div style="font-family:var(--mono);font-size:9px;color:var(--text-muted);letter-spacing:0.15em;">DANGER</div>
+            <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--accent);">87%</div>
+          </div>
+          <div class="profile-threat-box">
+            <div style="font-family:var(--mono);font-size:9px;color:var(--text-muted);letter-spacing:0.15em;">ANNOYANCE</div>
+            <div style="font-family:var(--mono);font-size:18px;font-weight:700;">99%</div>
+          </div>
+          <div class="profile-threat-box">
+            <div style="font-family:var(--mono);font-size:9px;color:var(--text-muted);letter-spacing:0.15em;">SURVIVAL</div>
+            <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--accent-amber);">3%</div>
+          </div>
+        </div>
+        <div class="profile-weaknesses">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:0.15em;margin-bottom:6px;">KNOWN ENTITY WEAKNESSES:</div>
+          • Constant movement<br>
+          • Panic resistance<br>
+          • Rational human decision-making<br>
+          <span style="color:var(--text-muted);font-style:italic;margin-top:6px;display:block;">"Unfortunately, telemetry indicates you have none of these."</span>
+        </div>
+        <button id="btn-profile-proceed" class="btn btn-primary" style="width:100%;">PROCEED TO VERIFICATION →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 6. HUMAN VERIFICATION // 2-STEP ==================== -->
+  <section id="screen-verify" class="screen" aria-label="Human verification">
+    <nav class="nav">
+      <div class="nav-logo">FEAR.EXE // HUMANITY CHECK</div>
+      <div class="nav-status" id="verify-nav-status">CAPTCHA-V3.0</div>
+    </nav>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:24px;">
+      <div class="verify-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <h2 style="font-size:22px;font-weight:800;margin-bottom:4px;">VERIFY HUMANITY — TRY YOUR BEST</h2>
+            <p style="font-size:12px;color:var(--text-muted);">Pass 2 completely unnecessary behavioral checks.</p>
+          </div>
+          <div style="font-family:var(--mono);font-size:10px;background:rgba(230,57,70,0.12);color:var(--accent);padding:4px 8px;border-radius:4px;border:1px solid rgba(230,57,70,0.3);" id="verify-step-badge">
+            STEP 1 / 3
+          </div>
+        </div>
+
+        <!-- Step 1: Initial Checkbox -->
+        <div class="captcha-check-box" id="captcha-box">
+          <div class="captcha-box-square" id="captcha-square"></div>
+          <span style="font-size:13px;font-weight:600;" id="captcha-label">I AM HUMAN (CLICK TO SCAN)</span>
+        </div>
+
+        <!-- Step 2: Existential Dread Multi-Select -->
+        <div id="captcha-secondary" style="display:none;flex-direction:column;gap:12px;">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:0.08em;display:flex;justify-content:space-between;">
+            <span>CHECK 1: Select 3 tiles that evoke pure existential dread.</span>
+            <span id="dread-counter" style="color:#fff;font-weight:700;">0 / 3</span>
+          </div>
+          <div class="tile-grid">
+            <div class="tile-item" data-tile="toast"><span class="tile-emoji">🍞</span>Burnt Toast</div>
+            <div class="tile-item" data-tile="sunday"><span class="tile-emoji">📉</span>Sunday 8 PM</div>
+            <div class="tile-item" data-tile="battery"><span class="tile-emoji">🪫</span>1% Battery</div>
+            <div class="tile-item" data-tile="talk"><span class="tile-emoji">💬</span>"We need to talk"</div>
+            <div class="tile-item" data-tile="ad"><span class="tile-emoji">📺</span>45s Unskippable Ad</div>
+            <div class="tile-item" data-tile="creature"><span class="tile-emoji">🪳</span>Spider You Lost</div>
+          </div>
+          <button id="btn-submit-dread" class="btn btn-primary" style="display:none;margin-top:4px;">SUBMIT DREAD SELECTION →</button>
+        </div>
+
+        <!-- Step 3: Human Reflex Calibration Mini-game -->
+        <div id="captcha-reflex" style="display:none;flex-direction:column;gap:10px;">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--accent-green);letter-spacing:0.08em;">
+            CHECK 2: REFLEX CALIBRATION · Hit the button when the needle is in the green zone!
+          </div>
+          <div class="reflex-track" id="reflex-track">
+            <div class="reflex-target-zone" id="reflex-target">HUMAN ZONE</div>
+            <div class="reflex-needle" id="reflex-needle"></div>
+          </div>
+          <button id="btn-stop-reflex" class="btn btn-primary" style="width:100%;">🎯 STOP NEEDLE NOW</button>
+        </div>
+
+        <p id="captcha-fail-msg" style="font-family:var(--mono);font-size:11px;color:var(--accent);min-height:16px;text-align:center;"></p>
+        <button id="btn-verify-continue" class="btn btn-primary" style="display:none;">CONTINUE TO LOGIN →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 7. FAKE LOGIN ==================== -->
+  <section id="screen-login" class="screen" aria-label="Identify yourself">
+    <nav class="nav">
+      <div class="nav-logo">FEAR.EXE</div>
+      <div class="nav-status">IDENTIFYING...</div>
+    </nav>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:24px;">
+      <div class="login-card">
+        <div>
+          <h2 class="login-title">IDENTIFY YOURSELF</h2>
+          <p class="login-sub">We need to know who we are about to inconvenience.</p>
+        </div>
+        <div class="input-group">
+          <label class="input-label" for="login-username">SUBJECT NAME</label>
+          <input id="login-username" class="input-field" type="text" placeholder="e.g. Brave Tester" autocomplete="off" value="Subject #00017" />
+        </div>
+        <div class="input-group">
+          <label class="input-label" for="login-password">PASSWORD</label>
+          <input id="login-password" class="input-field" type="password" placeholder="it doesn't matter" autocomplete="off" />
+        </div>
+        <div class="login-btn-container">
+          <button id="btn-login" class="btn btn-primary">LOGIN</button>
+        </div>
+        <p class="login-msg" id="login-msg" aria-live="polite"></p>
+        <p class="login-attempt-counter" id="login-attempt-counter">STATUS: UNCOOPERATIVE</p>
+        <a id="login-bypass-link" style="font-family:var(--mono);font-size:10px;color:var(--text-muted);text-decoration:underline;cursor:pointer;text-align:center;">Having trouble? Click here to bypass login</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 8. FEAR TRAINING ==================== -->
+  <section id="screen-training" class="screen" aria-label="Fear training">
+    <nav class="nav">
+      <div class="nav-logo">FEAR.EXE // TRAINING MODULE</div>
+      <div class="nav-status">CALIBRATING</div>
+    </nav>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:24px;">
+      <div class="train-container">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <h2 style="font-size:22px;font-weight:800;" id="train-title">PRACTICE RUN</h2>
+            <p style="font-size:12px;color:var(--text-muted);" id="train-desc">Learn how to avoid complete digital defeat.</p>
+          </div>
+          <div style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--accent-amber);" id="train-timer-label">10s</div>
+        </div>
+        <div class="train-timer-bar" id="train-progress-bar"></div>
+        <div class="train-canvas-box">
+          <canvas id="canvas-training"></canvas>
+          <div id="train-hint" style="position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:10px;color:var(--text-muted);background:rgba(0,0,0,0.6);padding:4px 10px;border-radius:4px;">
+            MOVE YOUR CURSOR / TOUCH AROUND
+          </div>
+        </div>
+        <button id="btn-train-ready" class="btn btn-primary" style="width:100%;">ENTER REAL SIMULATION ⚡</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 9. MAIN EXPERIENCE ==================== -->
+  <section id="screen-experience" class="screen" aria-label="Fear experience arena">
+    <div class="exp-hud-top">
+      <div class="hud-meta">
+        <div class="hud-logo">FEAR.EXE</div>
+        <div class="hud-submeta">THREAT: ACTIVE &nbsp;·&nbsp; PROTOCOL: FEAR-04</div>
+      </div>
+      <div class="hud-right">
+        <div class="hud-label">FEAR LEVEL</div>
+        <div class="fear-bar" id="fear-bar">░░░░░░░░░░</div>
+        <div class="exp-phase-badge" id="exp-phase-badge">PHASE 01: OBSERVATION</div>
+      </div>
+    </div>
+
+    <div class="exp-arena" id="exp-arena">
+      <!-- Canvases -->
+      <canvas id="canvas-cockroach" style="display:none;position:absolute;inset:0;width:100%;height:100%;"></canvas>
+      <canvas id="canvas-snake" style="display:none;position:absolute;inset:0;width:100%;height:100%;"></canvas>
+      <canvas id="canvas-spider" style="display:none;position:absolute;inset:0;width:100%;height:100%;"></canvas>
+      <canvas id="canvas-lizard" style="display:none;position:absolute;inset:0;width:100%;height:100%;"></canvas>
+<!-- Horror Vignette Pulse -->
+      <div id="horror-vignette"></div>
+
+      <!-- Horror Cinematic Glitch Text Flash -->
+      <div id="horror-flash-text">I SEE YOU.</div>
+      <div id="creature-horror-scene" aria-live="polite">
+        <div id="creature-horror-eyes">◉ &nbsp; ◉</div>
+        <p id="creature-horror-text"></p>
+      </div>
+
+      <!-- Fear AI Badge -->
+      <div id="fear-ai-box">
+        <div class="ai-label">FEAR AI // TELEMETRY</div>
+        <div class="ai-text" id="fear-ai-text">Analyzing user reaction vectors...</div>
+      </div>
+
+      <!-- Rage Meter Badge -->
+      <div id="rage-meter-badge">
+        <span>🔥 RAGE LEVEL:</span>
+        <span id="rage-meter-val" style="color:#fff;">88%</span>
+      </div>
+
+      <!-- Fake Safe Mode Trap Button -->
+      <button id="safe-mode-trap" title="Click to instantly activate 100% real invincibility">
+        🛡️ SAFE MODE (100% REAL)
+      </button>
+
+      <!-- In-game popups and overlays -->
+      <div class="random-event-popup" id="random-event-popup">
+        <h3 id="random-event-title" style="font-size:22px;font-weight:900;color:var(--accent);margin-bottom:8px;">SYSTEM ERROR</h3>
+        <p id="random-event-desc" style="font-family:var(--mono);font-size:12px;color:var(--text-secondary);">FEAR.EXE HAS CRASHED.</p>
+      </div>
+
+      <div class="fake-safe-zone" id="fake-safe-zone">
+        SAFE ZONE<br>(TOTALLY)
+      </div>
+
+      <div id="cockroach-warning" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;opacity:0;pointer-events:none;transition:opacity 0.4s;z-index:5;">
+        <h3 style="font-size:clamp(32px,6vw,68px);font-weight:900;text-align:center;">YOU STOPPED<br>MOVING.</h3>
+        <p style="font-family:var(--mono);font-size:13px;color:var(--text-muted);">THEY DIDN'T.</p>
+        <p id="cockroach-still-timer" style="font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.12em;">STILLNESS TIMER: 0.0S</p>
+      </div>
+
+      <div id="web-coverage-overlay" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;opacity:0;transition:opacity 0.4s;z-index:5;pointer-events:none;">
+        <h3 style="font-size:clamp(32px,6vw,68px);font-weight:900;">WEB COVERAGE:<br>100%</h3>
+        <p style="font-family:var(--mono);font-size:13px;color:var(--text-muted);margin-top:10px;">YOU ARE NOW PART OF THE WEBSITE.</p>
+      </div>
+    </div>
+
+    <div class="exp-hud-bottom">
+      <div>
+        <div class="hud-label">SURVIVAL TIME</div>
+        <div class="hud-timer" id="survival-timer">00:00</div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="hud-esc" id="btn-hud-retry" style="background:rgba(230,57,70,0.15);border:1px solid rgba(230,57,70,0.4);color:var(--accent);" title="Restart current chase immediately">↺ RETRY</button>
+        <button class="hud-esc" id="btn-esc">ESC / EXIT</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 10. FAILURE SCREEN ==================== -->
+  <section id="screen-failure" class="screen" aria-label="System failure">
+    <nav class="nav">
+      <div class="nav-logo">FEAR.EXE</div>
+      <div class="nav-status">SYSTEM FAILURE</div>
+    </nav>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;padding:32px;">
+      <p style="font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:0.25em;">SYSTEM FAILURE</p>
+      <h2 style="font-size:clamp(44px,7vw,88px);font-weight:900;line-height:0.95;letter-spacing:-0.03em;">CAUSE:<br>USER ERROR</h2>
+      <div style="font-family:var(--mono);font-size:12px;color:var(--text-muted);display:flex;flex-direction:column;gap:6px;">
+        <div>RESPONSIBILITY: <span style="color:var(--text-primary);">100% USER</span></div>
+        <div>CURSOR STATUS: <span id="fail-cursor-status" style="color:var(--accent);">COMPROMISED</span></div>
+      </div>
+      <p style="font-size:14px;color:var(--text-secondary);font-style:italic;max-width:440px;line-height:1.6;">
+        "You were given every opportunity. Unfortunately, you chose poorly."
+      </p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:10px;">
+        <button id="btn-retry-game" class="btn btn-primary">↺ RETRY CHASE (TRY AGAIN)</button>
+        <button id="btn-see-report" class="btn btn-secondary">VIEW SURVIVAL REPORT →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 11. SURVIVAL REPORT & RANK ==================== -->
+  <section id="screen-report" class="screen" aria-label="Survival report">
+    <nav class="nav">
+      <div class="nav-logo">FEAR.EXE // BEHAVIORAL TELEMETRY</div>
+      <div class="nav-status">ANALYSIS COMPLETE</div>
+    </nav>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:24px;">
+      <div class="report-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding-bottom:14px;">
+          <div>
+            <span style="font-family:var(--mono);font-size:10px;color:var(--text-muted);letter-spacing:0.2em;">SURVIVAL RANK</span>
+            <div class="rank-title" id="rep-rank-title">TECHNICALLY ALIVE</div>
+          </div>
+          <div class="rank-badge" id="rep-rank-badge">C</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+          <div class="profile-threat-box">
+            <div style="font-family:var(--mono);font-size:9px;color:var(--text-muted);letter-spacing:0.1em;">SURVIVAL TIME</div>
+            <div style="font-family:var(--mono);font-size:18px;font-weight:700;" id="rep-time">00:18</div>
+          </div>
+          <div class="profile-threat-box">
+            <div style="font-family:var(--mono);font-size:9px;color:var(--text-muted);letter-spacing:0.1em;">PANIC LEVEL</div>
+            <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--accent);" id="rep-panic">92%</div>
+          </div>
+          <div class="profile-threat-box">
+            <div style="font-family:var(--mono);font-size:9px;color:var(--text-muted);letter-spacing:0.1em;">REACTION TIME</div>
+            <div style="font-family:var(--mono);font-size:18px;font-weight:700;" id="rep-reaction">0.68s</div>
+          </div>
+          <div class="profile-threat-box">
+            <div style="font-family:var(--mono);font-size:9px;color:var(--text-muted);letter-spacing:0.1em;">DISTANCE MOVED</div>
+            <div style="font-family:var(--mono);font-size:18px;font-weight:700;" id="rep-distance">2410px</div>
+          </div>
+          <div class="profile-threat-box">
+            <div style="font-family:var(--mono);font-size:9px;color:var(--text-muted);letter-spacing:0.1em;">UNNECESSARY MOVE</div>
+            <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--accent-amber);">94%</div>
+          </div>
+          <div class="profile-threat-box">
+            <div style="font-family:var(--mono);font-size:9px;color:var(--text-muted);letter-spacing:0.1em;">STRATEGY</div>
+            <div style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--accent);">NONE</div>
+          </div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;font-size:13px;color:var(--text-secondary);font-style:italic;" id="rep-concl">
+          "Scientific Conclusion: You were chased by a digital creature. You panickedly moved your cursor around. That's it."
+        </div>
+        <div style="display:flex;gap:10px;width:100%;">
+          <button id="btn-report-retry" class="btn btn-secondary" style="flex:1;">↺ RETRY CHASE</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  
+<script>
+(() => {
+  'use strict';
+
+  // ================================================================
+  // STATE MANAGEMENT
+  // ================================================================
+  const state = {
+    judgeMode: false,
+    currentScreen: 'landing',
+    selectedFear: 'snake',
+    playerName: 'Subject #00017',
+    assessmentIdx: 0,
+    assessmentAnswers: [],
+    recommendedFear: 'cockroach',
+    loginAttempts: 0,
+    trainingTimer: 10,
+    gamePhase: 1, // 1: Observation, 2: Awareness, 3: Hunt, 4: Chaos
+    survivalSeconds: 0,
+    fearLevel: 0,
+    reactionTimeScore: 0.55,
+    distanceMoved: 0,
+    panicMovements: 0,
+    cursorPos: { x: window.innerWidth / 2, y: window.innerHeight / 2 },
+    touchPos: null,
+    isTouch: ('ontouchstart' in window || navigator.maxTouchPoints > 0),
+  };
+
+  // Track cursor coordinates
+  document.addEventListener('mousemove', e => {
+    const dx = e.clientX - state.cursorPos.x;
+    const dy = e.clientY - state.cursorPos.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    state.distanceMoved += dist;
+    if (dist > 40) state.panicMovements++;
+    state.cursorPos.x = e.clientX;
+    state.cursorPos.y = e.clientY;
+  });
+
+  document.addEventListener('touchmove', e => {
+    const t = e.touches[0];
+    const dx = t.clientX - (state.touchPos?.x || t.clientX);
+    const dy = t.clientY - (state.touchPos?.y || t.clientY);
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    state.distanceMoved += dist;
+    state.touchPos = { x: t.clientX, y: t.clientY };
+  }, { passive: true });
+
+  // ================================================================
+  // SCREEN MANAGER
+  // ================================================================
+  const screenEls = {};
+  document.querySelectorAll('.screen').forEach(s => { screenEls[s.id] = s; });
+  const overlay = document.getElementById('transition-overlay');
+
+  function goTo(id, delay = 0) {
+    setTimeout(() => {
+      overlay.classList.add('active');
+      setTimeout(() => {
+        Object.values(screenEls).forEach(s => s.classList.remove('active'));
+        if (screenEls[id]) {
+          screenEls[id].classList.add('active');
+          state.currentScreen = id.replace('screen-', '');
+        }
+        overlay.classList.remove('active');
+      }, 300);
+    }, delay);
+  }
+
+  // ================================================================
+  // JUDGE / DEMO MODE
+  // ================================================================
+  const btnJudgeToggle = document.getElementById('btn-judge-toggle');
+  const judgeLabel = document.getElementById('judge-label');
+
+  btnJudgeToggle.addEventListener('click', () => {
+    state.judgeMode = !state.judgeMode;
+    judgeLabel.textContent = state.judgeMode ? 'ON (1-MIN SPEEDRUN)' : 'OFF';
+    btnJudgeToggle.classList.toggle('active', state.judgeMode);
+    showSysMsg(state.judgeMode ? "⚡ Judge Mode Activated: Accelerated evaluation flow enabled." : "Judge Mode Disabled.");
+  });
+
+  // ================================================================
+  // SYSTEM MESSAGES & FEAR AI
+  // ================================================================
+  const sysMsg = document.getElementById('system-message');
+  const sysMsgText = document.getElementById('sys-msg-text');
+  let sysMsgTimer = null;
+
+  function showSysMsg(text, dur = 3500) {
+    clearTimeout(sysMsgTimer);
+    sysMsgText.textContent = `"${text}"`;
+    sysMsg.classList.add('visible');
+    sysMsgTimer = setTimeout(() => sysMsg.classList.remove('visible'), dur);
+  }
+
+  const fearAiBox = document.getElementById('fear-ai-box');
+  const fearAiText = document.getElementById('fear-ai-text');
+  let aiMsgTimer = null;
+
+  const fearAiQuotes = [
+    "You seem to move left more frequently under stress.",
+    "I have identified your strategy. You don't have one.",
+    "Your reaction time is deteriorating at an impressive rate.",
+    "Your movement appears increasingly erratic.",
+    "Your survival technique remains undocumented in modern science.",
+    "Your decision-making process is fascinating. And ineffective.",
+    "Telemetry confirms: panic levels exceeding recommended parameters.",
+  ];
+
+  function showFearAiMsg(text) {
+    clearTimeout(aiMsgTimer);
+    fearAiText.textContent = text;
+    fearAiBox.classList.add('visible');
+    aiMsgTimer = setTimeout(() => fearAiBox.classList.remove('visible'), 4000);
+  }
+
+  // ================================================================
+  // 1. LANDING
+  // ================================================================
+  document.getElementById('btn-begin').addEventListener('click', () => {
+    startAssessment();
+  });
+
+  // ================================================================
+  // 2. FEAR ASSESSMENT
+  // ================================================================
+  const assessmentQuestions = [
+    {
+      q: "A dark room contains something unknown. What is your immediate course of action?",
+      options: [
+        { text: "Investigate bravely", fear: "snake" },
+        { text: "Run in the opposite direction", fear: "cockroach" },
+        { text: "Freeze and pretend nothing happened", fear: "spider" },
+        { text: "Pretend you saw nothing and keep scrolling", fear: "lizard" }
+      ]
+    },
+    {
+      q: "You hear a faint scratching sound right behind you. How do you respond?",
+      options: [
+        { text: "Turn around immediately", fear: "snake" },
+        { text: "Jump on a chair and scream", fear: "cockroach" },
+        { text: "Assume it's paying rent now", fear: "spider" },
+        { text: "Pretend the sound was definitely the Wi-Fi", fear: "lizard" }
+      ]
+    },
+    {
+      q: "A fast-moving silhouette darts across your peripheral vision. Your thought:",
+      options: [
+        { text: "I can take it in hand-to-hand combat", fear: "snake" },
+        { text: "That belongs to the insect kingdom now", fear: "cockroach" },
+        { text: "I will clean this website eventually", fear: "spider" },
+        { text: "Move the cursor like absolutely nothing is wrong", fear: "lizard" }
+      ]
+    }
+  ];
+  const assessmentQuestionCount = 2;
+
+  function startAssessment() {
+    state.assessmentIdx = 0;
+    state.assessmentAnswers = [];
+    renderAssessmentQuestion();
+    goTo('screen-assessment');
+  }
+
+  function renderAssessmentQuestion() {
+    const totalQ = Math.min(assessmentQuestionCount, assessmentQuestions.length);
+    const curQ = assessmentQuestions[state.assessmentIdx];
+    document.getElementById('assess-tracker-text').textContent = `QUESTION 0${state.assessmentIdx + 1} / 0${totalQ}`;
+    document.getElementById('assess-q-title').textContent = curQ.q;
+
+    const box = document.getElementById('assess-options-box');
+    box.innerHTML = '';
+
+    curQ.options.forEach((opt, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'assess-btn';
+      btn.innerHTML = `<span>${opt.text}</span><span class="assess-key">[OPTION ${idx + 1}]</span>`;
+      btn.addEventListener('click', () => handleAssessmentChoice(opt.fear));
+      box.appendChild(btn);
+    });
+  }
+
+  function handleAssessmentChoice(fear) {
+    state.assessmentAnswers.push(fear);
+    state.assessmentIdx++;
+    const maxQ = Math.min(assessmentQuestionCount, assessmentQuestions.length);
+    if (state.assessmentIdx < maxQ) {
+      renderAssessmentQuestion();
+    } else {
+      finishAssessment();
+    }
+  }
+
+  function finishAssessment() {
+    goTo('screen-assessment-analysis');
+    const bar = document.getElementById('assess-progress-bar');
+    bar.style.width = '0%';
+
+    // Build a profile from the user's actual answers instead of showing
+    // the same hard-coded numbers every time.
+    const answers = state.assessmentAnswers.slice();
+    const counts = { snake: 0, cockroach: 0, spider: 0, lizard: 0 };
+    answers.forEach(fear => { if (counts[fear] !== undefined) counts[fear]++; });
+
+    const chosen = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+    state.recommendedFear = chosen[0] || 'cockroach';
+
+    // Deterministic but slightly absurd psychological scoring.
+    // Snake = boldness, cockroach = avoidance, spider = cautiousness,
+    // lizard = questionable confidence.
+    const courageBase = { snake: 86, cockroach: 34, spider: 47, lizard: 58 };
+    const senseBase   = { snake: 32, cockroach: 54, spider: 72, lizard: 21 };
+    const panicBase   = { snake: 28, cockroach: 76, spider: 48, lizard: 67 };
+    const qBase       = { snake: 61, cockroach: 82, spider: 55, lizard: 94 };
+    const top = state.recommendedFear;
+    const spread = answers.length ? answers.filter(a => a !== top).length : 0;
+
+    const courage = clamp(Math.round(courageBase[top] + (counts.snake * 5) - spread * 3), 8, 96);
+    const sense = clamp(Math.round(senseBase[top] + (counts.spider * 5) - (counts.lizard * 4)), 5, 94);
+    const panic = clamp(Math.round(panicBase[top] + (counts.cockroach * 5) + (counts.lizard * 3)), 12, 98);
+    const questionable = clamp(Math.round(qBase[top] + (spread * 4) + (counts.lizard * 2)), 35, 99);
+
+    state.assessmentProfile = { courage, sense, panic, questionable };
+
+    let p = 0;
+    const step = state.judgeMode ? 25 : 8;
+    const iv = setInterval(() => {
+      p += step;
+      const progress = Math.min(p, 100);
+      bar.style.width = `${progress}%`;
+
+      if (progress >= 100) {
+        clearInterval(iv);
+        document.getElementById('psy-courage').textContent = `${courage}%`;
+        document.getElementById('psy-sense').textContent = `${sense}%`;
+        document.getElementById('psy-panic').textContent = `${panic}%`;
+        document.getElementById('psy-questionable').textContent = `${questionable}%`;
+
+        const conclusions = {
+          snake: '"Interesting. You appear to have confused courage with poor decision-making."',
+          cockroach: '"Interesting. Your survival strategy appears to be running first and thinking never."',
+          spider: '"Interesting. You plan ahead. Unfortunately, so does the spider."',
+          lizard: '"Interesting. Your confidence is impressive. Its accuracy is not."'
+        };
+        document.getElementById('assess-concl-text').textContent = conclusions[top];
+      }
+    }, 60);
+  }
+
+  document.getElementById('btn-assess-continue').addEventListener('click', () => {
+    showRecommendation();
+  });
+
+  // ================================================================
+  // 3. FEAR RECOMMENDATION
+  // ================================================================
+  const fearReasons = {
+    cockroach: "You appear to possess zero situational awareness and a tendency to freeze under mild digital pressure.",
+    snake: "You exhibit an alarming compulsion to move closer to things that clearly want to eat your cursor.",
+    spider: "Your productivity instincts are deeply questionable. You will lose to a simple web.",
+    lizard: "Your cursor waving techniques look suspiciously appetizing to cartoon predators.",
+    rat: "You have ignored every scratching sound in this building. The scratching has not ignored you.",
+  };
+
+  function showRecommendation() {
+    const f = state.recommendedFear;
+    document.getElementById('rec-fear-name').textContent = `RECOMMENDED: ${f.toUpperCase()}`;
+    document.getElementById('rec-fear-reason').textContent = `"${fearReasons[f] || fearReasons.cockroach}"`;
+    goTo('screen-recommendation');
+  }
+
+  document.getElementById('btn-rec-accept').addEventListener('click', () => {
+    state.selectedFear = state.recommendedFear;
+    showFearProfile(state.selectedFear);
+  });
+
+  document.getElementById('btn-rec-custom').addEventListener('click', () => {
+    goTo('screen-fear-select');
+  });
+
+  // ================================================================
+  // 4. FEAR SELECTION
+  // ================================================================
+  document.querySelectorAll('.fear-card').forEach(card => {
+    card.addEventListener('click', () => {
+      state.selectedFear = card.dataset.fear;
+      showFearProfile(state.selectedFear);
+    });
+  });
+
+  // ================================================================
+  // 5. FEAR PROFILE DOSSIER
+  // ================================================================
+  const fearDossiers = {
+    cockroach: { title: "THREAT: COCKROACH", badge: "LEVEL 4 BIO-HAZARD" },
+    snake: { title: "THREAT: SNAKE", badge: "LEVEL 5 PREDATOR" },
+    spider: { title: "THREAT: SPIDER", badge: "LEVEL 3 WEB-TRAP" },
+    lizard: { title: "THREAT: LIZARD", badge: "LEVEL 4 HUNTER" },
+    rat: { title: "THREAT: RAT", badge: "LEVEL 5 WALL-CRAWLER" },
+  };
+
+  function showFearProfile(fear) {
+    const dossier = fearDossiers[fear] || fearDossiers.snake;
+    document.getElementById('dossier-name').textContent = dossier.title;
+    document.getElementById('dossier-badge').textContent = dossier.badge;
+    goTo('screen-profile');
+  }
+
+  document.getElementById('btn-profile-proceed').addEventListener('click', () => {
+    startVerification();
+  });
+
+  // ================================================================
+  // 6. HUMAN VERIFICATION // 2-STEP (MULTI-STAGE INTERACTIVE CAPTCHA)
+  // ================================================================
+  const captchaBox = document.getElementById('captcha-box');
+  const captchaSquare = document.getElementById('captcha-square');
+  const captchaLabel = document.getElementById('captcha-label');
+  const captchaSecondary = document.getElementById('captcha-secondary');
+  const captchaReflex = document.getElementById('captcha-reflex');
+  const btnVerifyContinue = document.getElementById('btn-verify-continue');
+  const captchaFailMsg = document.getElementById('captcha-fail-msg');
+  const verifyStepBadge = document.getElementById('verify-step-badge');
+  const dreadCounter = document.getElementById('dread-counter');
+  const btnSubmitDread = document.getElementById('btn-submit-dread');
+  const btnStopReflex = document.getElementById('btn-stop-reflex');
+  const reflexNeedle = document.getElementById('reflex-needle');
+
+  let selectedDreadTiles = new Set();
+  let reflexAnimRaf = null;
+  let needlePos = 0;
+  let needleDir = 1;
+  let reflexActive = false;
+
+  function startVerification() {
+    captchaBox.classList.remove('checked');
+    captchaSquare.textContent = '';
+    captchaLabel.textContent = 'I AM HUMAN (CLICK TO SCAN)';
+    captchaSecondary.style.display = 'none';
+    captchaReflex.style.display = 'none';
+    btnVerifyContinue.style.display = 'none';
+    btnSubmitDread.style.display = 'none';
+    captchaFailMsg.textContent = '';
+    verifyStepBadge.textContent = 'STEP 1 / 3';
+    selectedDreadTiles.clear();
+    dreadCounter.textContent = '0 / 3';
+    document.querySelectorAll('.tile-item').forEach(t => t.classList.remove('selected'));
+    if (reflexAnimRaf) cancelAnimationFrame(reflexAnimRaf);
+    reflexActive = false;
+    goTo('screen-verify');
+  }
+
+  // Step 1: Initial Checkbox
+  captchaBox.addEventListener('click', () => {
+    if (captchaBox.classList.contains('checked')) return;
+    captchaBox.classList.add('checked');
+    captchaSquare.textContent = '⏳';
+    captchaLabel.textContent = 'SCANNING CONSCIOUSNESS...';
+
+    setTimeout(() => {
+      captchaSquare.textContent = '✓';
+      captchaLabel.textContent = 'EMOTIONAL INSTABILITY DETECTED (LIKELY HUMAN)';
+
+      if (state.judgeMode) {
+        btnVerifyContinue.style.display = 'block';
+        return;
+      }
+
+      verifyStepBadge.textContent = 'STEP 2 / 3';
+      captchaSecondary.style.display = 'flex';
+    }, 700);
+  });
+
+  // Step 2: Existential Dread Selector
+  document.querySelectorAll('.tile-item').forEach(tile => {
+    tile.addEventListener('click', () => {
+      const id = tile.dataset.tile;
+      if (selectedDreadTiles.has(id)) {
+        selectedDreadTiles.delete(id);
+        tile.classList.remove('selected');
+      } else {
+        selectedDreadTiles.add(id);
+        tile.classList.add('selected');
+      }
+
+      const count = selectedDreadTiles.size;
+      dreadCounter.textContent = `${count} / 3`;
+
+      if (count >= 3) {
+        btnSubmitDread.style.display = 'block';
+        captchaFailMsg.textContent = 'Dread quota satisfied. Ready for submission.';
+      } else {
+        btnSubmitDread.style.display = 'none';
+        captchaFailMsg.textContent = `Select ${3 - count} more item(s).`;
+      }
+    });
+  });
+
+  btnSubmitDread.addEventListener('click', () => {
+    captchaSecondary.style.display = 'none';
+    verifyStepBadge.textContent = 'STEP 3 / 3';
+    captchaFailMsg.textContent = 'Anxiety confirmed. Proceeding to final reflex calibration...';
+    captchaReflex.style.display = 'flex';
+    startReflexMiniGame();
+  });
+
+  // Step 3: Reflex Timing Mini-Game
+  function startReflexMiniGame() {
+    reflexActive = true;
+    needlePos = 0;
+    needleDir = 1.4;
+
+    function animateNeedle() {
+      if (!reflexActive) return;
+      needlePos += needleDir * 1.8;
+      if (needlePos >= 96) { needlePos = 96; needleDir = -1.4; }
+      if (needlePos <= 0) { needlePos = 0; needleDir = 1.4; }
+
+      reflexNeedle.style.left = `${needlePos}%`;
+      reflexAnimRaf = requestAnimationFrame(animateNeedle);
+    }
+    reflexAnimRaf = requestAnimationFrame(animateNeedle);
+  }
+
+  btnStopReflex.addEventListener('click', () => {
+    if (!reflexActive) return;
+
+    // Target zone is between 38% and 64%
+    if (needlePos >= 38 && needlePos <= 64) {
+      reflexActive = false;
+      cancelAnimationFrame(reflexAnimRaf);
+      reflexNeedle.style.background = '#10b981';
+      reflexNeedle.style.boxShadow = '0 0 16px #10b981';
+      btnStopReflex.style.display = 'none';
+      verifyStepBadge.textContent = 'VERIFIED ✓';
+      verifyStepBadge.style.color = '#10b981';
+      verifyStepBadge.style.borderColor = '#10b981';
+      captchaFailMsg.style.color = '#10b981';
+      captchaFailMsg.textContent = '🎯 SWEET SPOT HIT! Humanity verified with 99.4% biological imperfection.';
+      btnVerifyContinue.style.display = 'block';
+    } else {
+      captchaFailMsg.style.color = 'var(--accent)';
+      const roasts = [
+        "TOO SLOW! Are you running on 300ms ping? Try again!",
+        "MISSED! Even an AI with bad WiFi hits that. Try again!",
+        "FAILED! Timing was tragic. Focus your human eyeballs!",
+        "TOO FAST! That was a panic click. Aim for the green zone!"
+      ];
+      captchaFailMsg.textContent = roasts[Math.floor(Math.random() * roasts.length)];
+      needleDir *= 1.1; // Speed up slightly for comedy
+    }
+  });
+
+  btnVerifyContinue.addEventListener('click', () => {
+    goTo('screen-login');
+  });
+
+  // ================================================================
+  // 7. FAKE LOGIN (EXTREME JUMPING / RAGEBAIT)
+  // ================================================================
+  const btnLogin = document.getElementById('btn-login');
+  const loginMsg = document.getElementById('login-msg');
+  const loginCounter = document.getElementById('login-attempt-counter');
+  const loginUsername = document.getElementById('login-username');
+  const loginBypassLink = document.getElementById('login-bypass-link');
+
+  const loginMessages = [
+    "The button does not wish to be clicked by you.",
+    "Nice try. Too slow.",
+    "Bro is struggling with a static UI element 💀",
+    "Are you aiming with your elbow?",
+    "Your reaction time belongs in a museum.",
+    "The button is running at 100% capacity. You are at 4%.",
+    "Imagine having a boss fight against a submit button.",
+    "Have you considered giving up?",
+    "Attempt 8 and you're still chasing a rectangle 😭",
+    "The button respects persistence. (It doesn't.)",
+    "Double digits and still nothing? Tragic.",
+    "Almost there! (Just kidding, still dodging).",
+    "Okay, one more time.",
+    "Fine. You've earned it.",
+  ];
+
+  const tauntBtnLabels = [
+    "NOPE 😂",
+    "TOO SLOW 🏃‍♂️",
+    "NOT EVEN CLOSE 💀",
+    "TRY HARDER 🧠",
+    "MISS AGAIN? 🤡",
+    "SKILL ISSUE",
+    "ALMOST (NO)",
+    "OVER HERE 👉",
+    "BEHIND YOU 👻",
+    "CLICK ME IF U CAN",
+    "STILL TRYING? 😂",
+    "KEEP CHASING 🏃",
+    "FINE... ACTUALLY CLICK NOW"
+  ];
+
+  let loginOffset = { x: 0, y: 0 };
+  let loginAllowed = false;
+  let lastEvasionTime = 0;
+
+  function loginRequiredAttempts() {
+    return state.judgeMode ? 6 : 28;
+  }
+
+  function updateLoginStatus() {
+    loginCounter.textContent = state.loginAttempts
+      ? 'STATUS: STILL UNCOOPERATIVE'
+      : 'STATUS: UNCOOPERATIVE';
+  }
+
+  function jumpLoginBtn(intensity = 1, evadeFrom = null) {
+    let nx = 0, ny = 0;
+    if (evadeFrom) {
+      // Calculate flee vector directly away from cursor
+      const angle = Math.atan2(loginOffset.y - evadeFrom.y, loginOffset.x - evadeFrom.x) + (Math.random() - 0.5) * 1.2;
+      const jumpDist = (140 + Math.random() * 120) * intensity;
+      nx = loginOffset.x + Math.cos(angle) * jumpDist;
+      ny = loginOffset.y + Math.sin(angle) * jumpDist;
+    } else {
+      const maxX = 180 * intensity;
+      const maxY = 130 * intensity;
+      nx = (Math.random() - 0.5) * 2 * maxX;
+      ny = (Math.random() - 0.5) * 2 * maxY;
+    }
+
+    // Wrap / bound within card area with wide margins
+    if (nx > 220) nx = -180 + Math.random() * 40;
+    else if (nx < -220) nx = 180 - Math.random() * 40;
+    if (ny > 140) ny = -120 + Math.random() * 30;
+    else if (ny < -140) ny = 120 - Math.random() * 30;
+
+    const rot = (Math.random() - 0.5) * 32;
+    loginOffset = { x: nx, y: ny };
+    btnLogin.style.transform = `translate(${nx}px, ${ny}px) rotate(${rot}deg)`;
+    btnLogin.style.transition = 'transform 0.09s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+
+    // Randomize taunt label
+    const label = tauntBtnLabels[Math.floor(Math.random() * tauntBtnLabels.length)];
+    btnLogin.textContent = label;
+  }
+
+  // Active Proximity Avoidance with Throttled Attempts
+  function handleLoginProximity(cx, cy) {
+    if (state.currentScreen !== 'login' || loginAllowed) return;
+    const rect = btnLogin.getBoundingClientRect();
+    const bx = rect.left + rect.width / 2;
+    const by = rect.top + rect.height / 2;
+    const d = dist(cx, cy, bx, by);
+
+    const threshold = 130;
+    if (d < threshold) {
+      const now = performance.now();
+      const requiredAttempts = loginRequiredAttempts();
+
+      // Only increment attempt counter once every 360ms per distinct flee
+      if (now - lastEvasionTime > 360) {
+        state.loginAttempts++;
+        lastEvasionTime = now;
+        updateLoginStatus();
+
+        const msg = loginMessages[Math.min(state.loginAttempts - 1, loginMessages.length - 1)];
+        loginMsg.textContent = msg;
+        loginMsg.classList.add('visible');
+        setTimeout(() => loginMsg.classList.remove('visible'), 2200);
+
+        if (state.loginAttempts >= requiredAttempts) {
+          loginAllowed = true;
+          btnLogin.style.transform = 'translate(0,0) rotate(0deg)';
+          btnLogin.textContent = 'LOGIN (ALLOWED)';
+          loginMsg.textContent = "Fine. You've earned it.";
+          loginMsg.classList.add('visible');
+          return;
+        }
+      }
+
+      // Convert cursor to relative button space and flee
+      const cardRect = document.querySelector('.login-card').getBoundingClientRect();
+      jumpLoginBtn(1.3, { x: cx - (cardRect.left + cardRect.width / 2), y: cy - (cardRect.top + cardRect.height / 2) });
+    }
+  }
+
+  document.addEventListener('mousemove', e => {
+    if (state.currentScreen === 'login') {
+      handleLoginProximity(e.clientX, e.clientY);
+    }
+  });
+
+  document.addEventListener('touchmove', e => {
+    if (state.currentScreen === 'login' && e.touches[0]) {
+      handleLoginProximity(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  }, { passive: true });
+
+  // Emergency dodge on mouse/pointer down or hover
+  ['mouseenter', 'pointerdown', 'mousedown', 'touchstart'].forEach(evt => {
+    btnLogin.addEventListener(evt, (e) => {
+      if (!loginAllowed) {
+        e.preventDefault();
+        state.loginAttempts++;
+        lastEvasionTime = performance.now();
+        const requiredAttempts = loginRequiredAttempts();
+        updateLoginStatus();
+        jumpLoginBtn(1.6);
+        if (state.loginAttempts >= requiredAttempts) {
+          loginAllowed = true;
+          btnLogin.style.transform = 'translate(0,0) rotate(0deg)';
+          btnLogin.textContent = 'LOGIN (ALLOWED)';
+          loginMsg.textContent = "Fine. You've earned it.";
+          loginMsg.classList.add('visible');
+        }
+      }
+    });
+  });
+
+  btnLogin.addEventListener('click', (e) => {
+    const requiredAttempts = loginRequiredAttempts();
+
+    if (loginAllowed || state.loginAttempts >= requiredAttempts) {
+      state.playerName = loginUsername.value.trim() || 'Subject #00017';
+      loginAllowed = false;
+      state.loginAttempts = 0;
+      updateLoginStatus();
+      btnLogin.style.transform = 'translate(0,0) rotate(0deg)';
+      btnLogin.textContent = 'LOGIN';
+      startTraining();
+      return;
+    }
+
+    e.preventDefault();
+    state.loginAttempts++;
+    updateLoginStatus();
+    jumpLoginBtn(1.6);
+  });
+
+  if (loginBypassLink) {
+    loginBypassLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      jumpLoginBtn(2.0);
+      loginMsg.textContent = "NICE TRY CHEATER 😂 (Bypass denied)";
+      loginMsg.classList.add('visible');
+      setTimeout(() => loginMsg.classList.remove('visible'), 2400);
+    });
+    loginBypassLink.addEventListener('mouseenter', () => {
+      jumpLoginBtn(1.5);
+    });
+  }
+
+  // ================================================================
+  // 8. FEAR TRAINING MODULE
+  // ================================================================
+  let trainInterval = null;
+  let trainCanvasRaf = null;
+
+  function startTraining() {
+    goTo('screen-training');
+    document.getElementById('train-title').textContent = `PRACTICE RUN: ${state.selectedFear.toUpperCase()}`;
+    const descMap = {
+      cockroach: "Keep moving your cursor continuously to keep pests at bay.",
+      snake: "Dodge the snake as it gradually calibrates toward your cursor.",
+      spider: "Hover over any appearing web to clear it. Keep the screen clean.",
+      lizard: "Keep distance before the tongue strike begins.",
+      rat: "Stay moving. The rat has learned your escape routes.",
+    };
+    document.getElementById('train-desc').textContent = descMap[state.selectedFear] || "Practice basic avoidance techniques.";
+
+    const canvas = document.getElementById('canvas-training');
+    const box = canvas.parentElement;
+    canvas.width = box.clientWidth;
+    canvas.height = box.clientHeight;
+    const ctx = canvas.getContext('2d');
+
+    let seconds = state.judgeMode ? 3 : 8;
+    document.getElementById('train-timer-label').textContent = `${seconds}s`;
+    const bar = document.getElementById('train-progress-bar');
+    bar.style.width = '100%';
+
+    let dummyEntity = { x: canvas.width * 0.2, y: canvas.height * 0.5, size: 14 };
+
+    function trainAnim() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const ptr = {
+        x: state.cursorPos.x - canvas.getBoundingClientRect().left,
+        y: state.cursorPos.y - canvas.getBoundingClientRect().top
+      };
+
+      // Move toward cursor gently
+      dummyEntity.x += (ptr.x - dummyEntity.x) * 0.04;
+      dummyEntity.y += (ptr.y - dummyEntity.y) * 0.04;
+
+      ctx.fillStyle = 'rgba(230,57,70,0.85)';
+      ctx.beginPath();
+      ctx.arc(dummyEntity.x, dummyEntity.y, dummyEntity.size, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Guide line
+      ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(dummyEntity.x, dummyEntity.y);
+      ctx.lineTo(ptr.x, ptr.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      trainCanvasRaf = requestAnimationFrame(trainAnim);
+    }
+    trainCanvasRaf = requestAnimationFrame(trainAnim);
+
+    clearInterval(trainInterval);
+    trainInterval = setInterval(() => {
+      seconds--;
+      document.getElementById('train-timer-label').textContent = `${seconds}s`;
+      bar.style.width = `${(seconds / (state.judgeMode ? 3 : 8)) * 100}%`;
+      if (seconds <= 0) {
+        clearInterval(trainInterval);
+        cancelAnimationFrame(trainCanvasRaf);
+        document.getElementById('train-hint').textContent = 'TRAINING COMPLETE: SURVIVAL SKILLS UNCONFIRMED.';
+      }
+    }, 1000);
+  }
+
+  document.getElementById('btn-train-ready').addEventListener('click', () => {
+    clearInterval(trainInterval);
+    cancelAnimationFrame(trainCanvasRaf);
+    fearAudio.prepare();
+    startMainExperience();
+  });
+
+  // ================================================================
+  // 9. MAIN FEAR SIMULATION & GAMEPLAY ORCHESTRATOR
+  // ================================================================
+  let activeExp = null;
+  let gameTimer = null;
+  let aiInterval = null;
+  let randomEventInterval = null;
+
+  function startMainExperience() {
+    // This function is reached from the user's "READY" click. Start the
+    // snake voice here so browser autoplay policies allow the MP3 to play.
+    if (state.selectedFear === 'snake' && typeof window.playSnakeVoice === 'function') {
+      window.playSnakeVoice();
+    }
+
+    goTo('screen-experience');
+    state.survivalSeconds = 0;
+    state.fearLevel = 0;
+    state.gamePhase = 1;
+    state.distanceMoved = 0;
+    state.panicMovements = 0;
+
+    updateFearHUD(0, 1);
+    document.getElementById('survival-timer').textContent = '00:00';
+
+    setTimeout(() => {
+      launchArenaGame(state.selectedFear);
+      startGameLoop();
+    }, 450);
+  }
+
+  function updateFearHUD(level, phase) {
+    state.fearLevel = Math.max(0, Math.min(10, level));
+    state.gamePhase = phase;
+
+    const f = Math.round(state.fearLevel);
+    document.getElementById('fear-bar').textContent = '█'.repeat(f) + '░'.repeat(10 - f);
+
+    const phaseNames = {
+      1: "PHASE 01: OBSERVATION",
+      2: "PHASE 02: AWARENESS",
+      3: "PHASE 03: HUNT",
+      4: "PHASE 04: CHAOS",
+    };
+    document.getElementById('exp-phase-badge').textContent = phaseNames[phase] || "PHASE 01";
+
+    if (state.fearLevel >= 8) {
+      document.getElementById('screen-experience').classList.add('shaking');
+      setTimeout(() => document.getElementById('screen-experience').classList.remove('shaking'), 180);
+    }
+
+    // Dynamic rage meter update
+    const rageVal = Math.min(99, Math.round(state.fearLevel * 7.5 + state.panicMovements * 1.5 + 20));
+    const rEl = document.getElementById('rage-meter-val');
+    if (rEl) rEl.textContent = `${rageVal}%`;
+  }
+
+  // ================================================================
+  // HORROR FLASH & RAGEBAIT SYSTEM
+  // ================================================================
+  const horrorFlashEl = document.getElementById('horror-flash-text');
+  const horrorFlashQuotes = [
+    "I SEE YOU.",
+    "WHY ARE YOU RUNNING?",
+    "YOU CANNOT ESCAPE.",
+    "YOUR CURSOR LOOKS DELICIOUS.",
+    "LOOK BEHIND YOU.",
+    "THERE IS NO SAFE ZONE.",
+    "WHY ARE YOU STILL PLAYING?",
+    "SKILL ISSUE DETECTED.",
+  ];
+  let horrorFlashInterval = null;
+
+  // Small procedural soundscape: no external files or autoplay required.
+  class FearSoundscape {
+    constructor() {
+      this.context = null;
+      this.master = null;
+      this.activeSources = [];
+      this.animalTimer = null;
+    }
+
+    prepare() {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      if (!this.context) {
+        this.context = new AudioCtx();
+        this.master = this.context.createGain();
+        this.master.gain.value = 0.26;
+        this.master.connect(this.context.destination);
+      }
+      if (this.context.state === 'suspended') this.context.resume().catch(() => {});
+    }
+
+    addSource(source) {
+      this.activeSources.push(source);
+      source.onended = () => {
+        this.activeSources = this.activeSources.filter(item => item !== source);
+      };
+    }
+
+    tone(frequency, duration, type = 'sine', volume = 0.035, endFrequency = frequency) {
+      if (!this.context || !this.master) return;
+      const now = this.context.currentTime;
+      const oscillator = this.context.createOscillator();
+      const gain = this.context.createGain();
+      oscillator.type = type;
+      oscillator.frequency.setValueAtTime(frequency, now);
+      oscillator.frequency.exponentialRampToValueAtTime(Math.max(1, endFrequency), now + duration);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(volume, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+      oscillator.connect(gain).connect(this.master);
+      oscillator.start(now);
+      oscillator.stop(now + duration + 0.03);
+      this.addSource(oscillator);
+    }
+
+    noise(duration, volume = 0.025, highpass = 1000) {
+      if (!this.context || !this.master) return;
+      const frameCount = Math.max(1, Math.floor(this.context.sampleRate * duration));
+      const buffer = this.context.createBuffer(1, frameCount, this.context.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < frameCount; i++) data[i] = Math.random() * 2 - 1;
+      const source = this.context.createBufferSource();
+      const filter = this.context.createBiquadFilter();
+      const gain = this.context.createGain();
+      const now = this.context.currentTime;
+      source.buffer = buffer;
+      filter.type = 'highpass';
+      filter.frequency.value = highpass;
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(volume, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+      source.connect(filter).connect(gain).connect(this.master);
+      source.start(now);
+      source.stop(now + duration + 0.03);
+      this.addSource(source);
+    }
+
+    animalSound(fear) {
+      if (fear === 'snake') this.noise(0.42, 0.035, 2600);
+      else if (fear === 'cockroach') {
+        this.tone(620, 0.05, 'square', 0.018, 840);
+        setTimeout(() => this.tone(760, 0.05, 'square', 0.014, 560), 80);
+      } else if (fear === 'spider') this.tone(360, 0.08, 'triangle', 0.022, 240);
+      else if (fear === 'lizard') this.tone(980, 0.12, 'sine', 0.03, 1440);
+      else this.tone(280, 0.14, 'triangle', 0.026, 620);
+    }
+
+    start(fear) {
+      this.stop();
+      this.prepare();
+      if (!this.context || !this.master) return;
+      const now = this.context.currentTime;
+      const drone = this.context.createOscillator();
+      const droneGain = this.context.createGain();
+      const lowpass = this.context.createBiquadFilter();
+      drone.type = 'sawtooth';
+      drone.frequency.value = 49;
+      lowpass.type = 'lowpass';
+      lowpass.frequency.value = 115;
+      droneGain.gain.setValueAtTime(0.0001, now);
+      droneGain.gain.linearRampToValueAtTime(0.055, now + 1.2);
+      drone.connect(lowpass).connect(droneGain).connect(this.master);
+      drone.start(now);
+      this.addSource(drone);
+      this.animalSound(fear);
+      this.animalTimer = setInterval(() => this.animalSound(fear), state.judgeMode ? 2600 : 4400);
+    }
+
+    horrorHit() {
+      this.tone(82, 0.28, 'triangle', 0.045, 42);
+      this.noise(0.14, 0.012, 1800);
+    }
+
+    stop() {
+      clearInterval(this.animalTimer);
+      this.animalTimer = null;
+      this.activeSources.forEach(source => {
+        try { source.stop(); } catch (_) {}
+      });
+      this.activeSources = [];
+    }
+  }
+  const fearAudio = new FearSoundscape();
+
+  function triggerHorrorFlash() {
+    if (state.currentScreen !== 'experience') return;
+    fearAudio.horrorHit();
+    const quote = horrorFlashQuotes[Math.floor(Math.random() * horrorFlashQuotes.length)];
+    horrorFlashEl.textContent = quote;
+    horrorFlashEl.classList.add('visible');
+    setTimeout(() => horrorFlashEl.classList.remove('visible'), 1200);
+  }
+
+  // Safe Mode Trap Click
+  const safeModeTrap = document.getElementById('safe-mode-trap');
+  safeModeTrap.addEventListener('click', () => {
+    if (state.currentScreen !== 'experience') return;
+    showSysMsg("YOU ACTUALLY CLICKED THAT?! 😂😂😂 (Creature speed doubled)");
+    if (activeExp && activeExp.speed) activeExp.speed *= 1.8;
+    document.getElementById('screen-experience').classList.add('shaking');
+    setTimeout(() => document.getElementById('screen-experience').classList.remove('shaking'), 400);
+  });
+
+  safeModeTrap.addEventListener('mouseenter', () => {
+    const ox = (Math.random() - 0.5) * 80;
+    const oy = (Math.random() - 0.5) * 40;
+    safeModeTrap.style.transform = `translate(${ox}px, ${oy}px)`;
+  });
+
+  function startGameLoop() {
+    clearInterval(gameTimer);
+    clearInterval(aiInterval);
+    clearInterval(randomEventInterval);
+    clearInterval(horrorFlashInterval);
+
+    // Timer
+    gameTimer = setInterval(() => {
+      state.survivalSeconds++;
+      const m = String(Math.floor(state.survivalSeconds / 60)).padStart(2, '0');
+      const s = String(state.survivalSeconds % 60).padStart(2, '0');
+      document.getElementById('survival-timer').textContent = `${m}:${s}`;
+
+      // Phase & Fear Escalation
+      const rate = state.judgeMode ? 0.8 : 0.25;
+      const newLvl = Math.min(10, state.fearLevel + rate);
+      let newPhase = 1;
+      if (newLvl > 7.5) newPhase = 4;
+      else if (newLvl > 5) newPhase = 3;
+      else if (newLvl > 2.5) newPhase = 2;
+
+      updateFearHUD(newLvl, newPhase);
+
+      // Trigger automatic failure at max chaos if taking too long
+      if (newLvl >= 10 && state.survivalSeconds > (state.judgeMode ? 15 : 45)) {
+        endArenaGame(false);
+      }
+    }, 1000);
+
+    // Fear AI Commentary
+    aiInterval = setInterval(() => {
+      const msg = fearAiQuotes[Math.floor(Math.random() * fearAiQuotes.length)];
+      showFearAiMsg(msg);
+    }, state.judgeMode ? 4000 : 8000);
+
+    // Horror Text Flashes ("I SEE YOU")
+    horrorFlashInterval = setInterval(() => {
+      triggerHorrorFlash();
+    }, state.judgeMode ? 5000 : 9500);
+
+    // Random in-game unexpected events
+    randomEventInterval = setInterval(() => {
+      triggerRandomEvent();
+    }, state.judgeMode ? 6500 : 13000);
+  }
+
+  function triggerRandomEvent() {
+    const roll = Math.floor(Math.random() * 4);
+    const popup = document.getElementById('random-event-popup');
+    const safeZone = document.getElementById('fake-safe-zone');
+
+    if (roll === 0) {
+      triggerCreatureHorrorScene();
+    } else if (roll === 1) {
+      document.getElementById('random-event-title').textContent = "SYSTEM ERROR";
+      document.getElementById('random-event-desc').textContent = "FEAR.EXE HAS CRASHED. ...Just kidding. RUN.";
+      popup.classList.add('visible');
+      setTimeout(() => popup.classList.remove('visible'), 2600);
+    } else if (roll === 2) {
+      document.getElementById('random-event-title').textContent = "GAME PAUSED";
+      document.getElementById('random-event-desc').textContent = "Creature did not respect pause command.";
+      popup.classList.add('visible');
+      setTimeout(() => popup.classList.remove('visible'), 2400);
+    } else {
+      const arena = document.getElementById('exp-arena');
+      safeZone.style.left = `${Math.random() * (arena.clientWidth - 160) + 40}px`;
+      safeZone.style.top = `${Math.random() * (arena.clientHeight - 160) + 40}px`;
+      safeZone.classList.add('visible');
+      showSysMsg("SAFE ZONE DETECTED. (You actually believe that?)");
+      setTimeout(() => safeZone.classList.remove('visible'), 4000);
+    }
+  }
+
+  function triggerCreatureHorrorScene() {
+    const scenes = {
+      cockroach: { eyes: '● ● ●', text: 'THE FLOOR IS MOVING.', duration: 1500 },
+      snake: { eyes: '◉ &nbsp; ◉', text: 'DON’T LOOK DOWN.', duration: 1650 },
+      spider: { eyes: '◉ ◉ ◉ ◉', text: 'THE WEB IS CLOSING.', duration: 1500 },
+      lizard: { eyes: '◉ &nbsp; ◉', text: 'IT KNOWS YOUR NEXT MOVE.', duration: 1450 },
+    };
+    const scene = scenes[state.selectedFear] || scenes.snake;
+    const el = document.getElementById('creature-horror-scene');
+    document.getElementById('creature-horror-eyes').innerHTML = scene.eyes;
+    document.getElementById('creature-horror-text').textContent = scene.text;
+    el.className = `visible ${state.selectedFear}`;
+    fearAudio.horrorHit();
+    setTimeout(() => { el.className = ''; }, scene.duration);
+  }
+
+  function launchArenaGame(fear) {
+    ['cockroach', 'snake', 'spider', 'lizard'].forEach(f => {
+      const c = document.getElementById(`canvas-${f}`);
+      if (c) c.style.display = 'none';
+    });
+    const canvas = document.getElementById(`canvas-${fear}`);
+    if (!canvas) return;
+    canvas.style.display = 'block';
+    const arena = document.getElementById('exp-arena');
+    canvas.width = arena.clientWidth;
+    canvas.height = arena.clientHeight;
+    fearAudio.start(fear);
+
+    if (fear === 'cockroach') activeExp = new CockroachGame(canvas);
+    else if (fear === 'snake') activeExp = new SnakeGame(canvas);
+    else if (fear === 'spider') activeExp = new SpiderGame(canvas);
+    else if (fear === 'lizard') activeExp = new LizardGame(canvas);
+    else activeExp = new LizardGame(canvas);
+  }
+
+  function endArenaGame(survived) {
+    if (activeExp) { activeExp.destroy(); activeExp = null; }
+    fearAudio.stop();
+    clearInterval(gameTimer);
+    clearInterval(aiInterval);
+    clearInterval(randomEventInterval);
+    clearInterval(horrorFlashInterval);
+
+    if (survived) {
+      showReportScreen(true);
+    } else {
+      const statuses = { cockroach: 'OCCUPIED BY ROACHES', snake: 'BITTEN', spider: 'WEBBED', lizard: 'CONSUMED' };
+      document.getElementById('fail-cursor-status').textContent = statuses[state.selectedFear] || 'COMPROMISED';
+      goTo('screen-failure');
+    }
+  }
+
+  function retryChaseGame() {
+    if (activeExp) { activeExp.destroy(); activeExp = null; }
+    fearAudio.stop();
+    clearInterval(gameTimer);
+    clearInterval(aiInterval);
+    clearInterval(randomEventInterval);
+    clearInterval(horrorFlashInterval);
+    state.survivalSeconds = 0;
+    state.fearLevel = 0;
+    state.panicMovements = 0;
+    startMainExperience();
+  }
+
+  document.getElementById('btn-hud-retry').addEventListener('click', retryChaseGame);
+  document.getElementById('btn-retry-game').addEventListener('click', retryChaseGame);
+  document.getElementById('btn-report-retry').addEventListener('click', retryChaseGame);
+  document.getElementById('btn-esc').addEventListener('click', () => endArenaGame(true));
+  document.getElementById('btn-see-report').addEventListener('click', () => showReportScreen(false));
+
+  // ================================================================
+  // 10 & 11. SURVIVAL REPORT & RANK
+  // ================================================================
+  function showReportScreen(survived) {
+    goTo('screen-report');
+    const m = String(Math.floor(state.survivalSeconds / 60)).padStart(2, '0');
+    const s = String(state.survivalSeconds % 60).padStart(2, '0');
+    const timeStr = `${m}:${s}`;
+
+    document.getElementById('rep-time').textContent = timeStr;
+    const panicScore = Math.min(99, Math.max(65, Math.round(state.fearLevel * 8 + state.panicMovements * 2)));
+    document.getElementById('rep-panic').textContent = `${panicScore}%`;
+    document.getElementById('rep-reaction').textContent = `${(0.4 + Math.random() * 0.4).toFixed(2)}s`;
+    document.getElementById('rep-distance').textContent = `${Math.round(state.distanceMoved)}px`;
+
+    // Assign Ridiculous Rank
+    let rank = 'C', title = 'TECHNICALLY ALIVE';
+    if (state.survivalSeconds > 35) { rank = 'S'; title = 'UNREASONABLY COMPETENT'; }
+    else if (state.survivalSeconds > 22) { rank = 'A'; title = 'SURPRISINGLY CAPABLE'; }
+    else if (state.survivalSeconds > 12) { rank = 'B'; title = 'COULD HAVE BEEN WORSE'; }
+    else if (state.survivalSeconds > 5) { rank = 'C'; title = 'TECHNICALLY ALIVE'; }
+    else if (state.survivalSeconds > 2) { rank = 'D'; title = 'THE CREATURE HAD A GREAT DAY'; }
+    else { rank = 'F'; title = 'THE WEBSITE WON'; }
+
+    document.getElementById('rep-rank-badge').textContent = rank;
+    document.getElementById('rep-rank-title').textContent = title;
+  }
+
+    // UTILITIES & SPEECH BUBBLE HELPER
+  // ================================================================
+  function getPtr(canvas) {
+    const r = canvas.getBoundingClientRect();
+    if (state.isTouch && state.touchPos) {
+      return { x: state.touchPos.x - r.left, y: state.touchPos.y - r.top };
+    }
+    return { x: state.cursorPos.x - r.left, y: state.cursorPos.y - r.top };
+  }
+  function dist(x1, y1, x2, y2) { return Math.sqrt((x2-x1)**2 + (y2-y1)**2); }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+  function rand(lo, hi) { return lo + Math.random() * (hi - lo); }
+
+  function drawSpeechBubble(ctx, x, y, text, flip = false) {
+    if (!text) return;
+    ctx.save();
+    ctx.font = 'bold 11px "JetBrains Mono", monospace';
+    const paddingX = 10;
+    const metrics = ctx.measureText(text);
+    const w = metrics.width + paddingX * 2;
+    const h = 24;
+    const bx = flip ? x - w - 10 : x + 10;
+    const by = y - 36;
+
+    // Bubble Background
+    ctx.fillStyle = 'rgba(18, 18, 22, 0.94)';
+    ctx.strokeStyle = '#e63946';
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(bx, by, w, h, 6);
+    else ctx.rect(bx, by, w, h);
+    ctx.fill();
+    ctx.stroke();
+
+    // Pointer Tail
+    ctx.beginPath();
+    if (flip) {
+      ctx.moveTo(bx + w - 4, by + h);
+      ctx.lineTo(x, y - 6);
+      ctx.lineTo(bx + w - 14, by + h);
+    } else {
+      ctx.moveTo(bx + 4, by + h);
+      ctx.lineTo(x, y - 6);
+      ctx.lineTo(bx + 14, by + h);
+    }
+    ctx.fillStyle = 'rgba(18, 18, 22, 0.94)';
+    ctx.fill();
+    ctx.strokeStyle = '#e63946';
+    ctx.stroke();
+
+    // Bubble Text
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(text, bx + paddingX, by + 16);
+    ctx.restore();
+  }
+
+  // ================================================================
+  // GAME ENGINES (COCKROACH, SNAKE, SPIDER, LIZARD)
+  // ================================================================
+
+  // ---- 1. COCKROACH GAME ----
+  class CockroachGame {
+    constructor(canvas) {
+      this.canvas = canvas;
+      this.ctx = canvas.getContext('2d');
+      // Start with visible roaches immediately so the arena never looks empty.
+      this.roaches = [];
+      this.maxRoaches = state.judgeMode ? 40 : 75;
+      this.initialRoachCount = state.judgeMode ? 5 : 8;
+      this.stillTime = 0;
+      this.lastPtr = getPtr(canvas);
+      this.failed = false;
+      this.raf = null;
+      this.lastTS = performance.now();
+      this.warningEl = document.getElementById('cockroach-warning');
+      this.stillTimerEl = document.getElementById('cockroach-still-timer');
+      this.speech = "HE STOPPED! GET HIM!";
+      this.speechTimer = 0;
+      this.quotes = [
+        "HE STOPPED! GET HIM!",
+        "Free real estate!",
+        "We live here now.",
+        "Bro thinks staying still works 💀",
+        "Imagine losing to a 2D roach.",
+        "Are you AFK or just bad?",
+        "Delicious cursor spotted."
+      ];
+      // Seed the arena with a few roaches right away.
+      for (let i = 0; i < this.initialRoachCount; i++) this.spawn(true);
+
+      this.loop = this.loop.bind(this);
+      this.raf = requestAnimationFrame(this.loop);
+    }
+    spawn(initial = false) {
+      const w = this.canvas.width, h = this.canvas.height;
+      const e = Math.floor(Math.random() * 4);
+      let x = 0, y = 0;
+      if (initial) {
+        // Initial roaches are placed directly inside the arena.
+        x = rand(50, Math.max(50, w - 50));
+        y = rand(50, Math.max(50, h - 50));
+      } else if (e === 0) { x = rand(0, w); y = -20; }
+      else if (e === 1) { x = w + 20; y = rand(0, h); }
+      else if (e === 2) { x = rand(0, w); y = h + 20; }
+      else { x = -20; y = rand(0, h); }
+      this.roaches.push({
+        x, y, tx: rand(40, Math.max(40, w-40)), ty: rand(40, Math.max(40, h-40)),
+        angle: Math.random() * Math.PI * 2,
+        speed: rand(0.9, 2.2), size: rand(13, 20), leg: Math.random() * Math.PI * 2
+      });
+    }
+    loop(ts) {
+      if (this.failed) return;
+      const elapsedSeconds = clamp((ts - this.lastTS) / 1000, 0, 0.05);
+      const dt = clamp((ts - this.lastTS) / 16.67, 0.1, 3);
+      this.lastTS = ts;
+      const w = this.canvas.width, h = this.canvas.height;
+      const ptr = getPtr(this.canvas);
+      const ctx = this.ctx;
+
+      this.speechTimer += dt;
+      if (this.speechTimer > 160) {
+        this.speechTimer = 0;
+        this.speech = this.quotes[Math.floor(Math.random() * this.quotes.length)];
+      }
+
+      const mv = dist(ptr.x, ptr.y, this.lastPtr.x, this.lastPtr.y);
+      if (mv > 4) {
+        this.stillTime = 0;
+        this.lastPtr = { ...ptr };
+        this.warningEl.style.opacity = '0';
+        this.stillTimerEl.textContent = 'STILLNESS TIMER: 0.0S';
+      } else {
+        this.stillTime += elapsedSeconds;
+        this.stillTimerEl.textContent = `STILLNESS TIMER: ${this.stillTime.toFixed(1)}S`;
+        if (this.stillTime >= 0.3) this.warningEl.style.opacity = '1';
+      }
+
+      // The first wave arrives quickly, then the screen escalates while the cursor is still.
+      if (this.stillTime > (state.judgeMode ? 0.45 : 0.7) && this.roaches.length < this.maxRoaches) {
+        this.spawn();
+        if (this.stillTime > 1.2 && this.roaches.length < this.maxRoaches) this.spawn();
+        if (this.stillTime > 2.0 && this.roaches.length < this.maxRoaches) this.spawn();
+      }
+
+      if (this.roaches.length >= this.maxRoaches * 0.92) {
+        this.failed = true;
+        endArenaGame(false);
+        return;
+      }
+
+      ctx.clearRect(0, 0, w, h);
+      const time = ts / 1000;
+
+      this.roaches.forEach((r, i) => {
+        const dx = r.x - ptr.x, dy = r.y - ptr.y;
+        const d = Math.sqrt(dx*dx + dy*dy);
+        if (d < 140) {
+          const ang = Math.atan2(dy, dx);
+          r.tx = clamp(r.x + Math.cos(ang) * 90, 15, w-15);
+          r.ty = clamp(r.y + Math.sin(ang) * 90, 15, h-15);
+        } else if (dist(r.x, r.y, r.tx, r.ty) < 15) {
+          r.tx = rand(20, w-20); r.ty = rand(20, h-20);
+        }
+        const tdx = r.tx - r.x, tdy = r.ty - r.y, td = Math.sqrt(tdx*tdx+tdy*tdy);
+        if (td > 1) r.angle = Math.atan2(tdy, tdx) + Math.sin(time * 3 + i) * 0.25;
+        r.x += Math.cos(r.angle) * r.speed * dt;
+        r.y += Math.sin(r.angle) * r.speed * dt;
+        r.x = clamp(r.x, 0, w); r.y = clamp(r.y, 0, h);
+        r.leg += 0.2 * dt;
+
+        ctx.save();
+        ctx.translate(r.x, r.y);
+        ctx.rotate(r.angle + Math.PI / 2);
+        const s = r.size;
+
+        ctx.fillStyle = '#352515';
+        ctx.beginPath(); ctx.ellipse(0, 0, s*0.38, s*0.68, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#453525';
+        ctx.beginPath(); ctx.ellipse(0, -s*0.68, s*0.24, s*0.24, 0, 0, Math.PI*2); ctx.fill();
+
+        // Wing case, antennae and six independently animated legs.
+        ctx.strokeStyle = 'rgba(168,118,68,0.58)'; ctx.lineWidth = 0.7;
+        ctx.beginPath(); ctx.moveTo(0, -s * 0.5); ctx.lineTo(0, s * 0.5); ctx.stroke();
+        ctx.strokeStyle = '#6a5138'; ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.moveTo(-s * 0.12, -s * 0.86); ctx.quadraticCurveTo(-s * 0.7, -s * 1.15, -s * 0.9, -s * 1.45);
+        ctx.moveTo(s * 0.12, -s * 0.86); ctx.quadraticCurveTo(s * 0.7, -s * 1.15, s * 0.9, -s * 1.45);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#554535'; ctx.lineWidth = 0.8;
+        for (let lg = 0; lg < 3; lg++) {
+          const ly = (lg - 1) * s * 0.33;
+          const wL = Math.sin(r.leg + lg * 1.1) * 3;
+          const wR = Math.sin(r.leg + lg * 1.1 + Math.PI) * 3;
+          ctx.beginPath(); ctx.moveTo(-s*0.34, ly); ctx.lineTo(-s*0.8 + wL, ly - s*0.18); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(s*0.34, ly); ctx.lineTo(s*0.8 + wR, ly - s*0.18); ctx.stroke();
+        }
+        ctx.restore();
+      });
+
+      // Lead Roaches speech bubble
+      if (this.roaches.length > 0) {
+        const leader = this.roaches[0];
+        drawSpeechBubble(ctx, leader.x, leader.y, this.speech, leader.x > w * 0.6);
+      }
+
+      this.raf = requestAnimationFrame(this.loop);
+    }
+    destroy() {
+      cancelAnimationFrame(this.raf);
+      this.warningEl.style.opacity = '0';
+      this.stillTimerEl.textContent = 'STILLNESS TIMER: 0.0S';
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+  }
+
+  // ---- 2. PROCEDURAL CANVAS SNAKE GAME ----
+  // No PNGs, SVG assets, or external creature images. The snake is drawn
+  // entirely with Canvas and animated as a flexible, scale-covered body.
+  class SnakeGame {
+    constructor(canvas) {
+      this.canvas = canvas;
+      this.ctx = canvas.getContext('2d');
+      this.failed = false;
+      this.raf = null;
+      this.lastTS = performance.now();
+      this.elapsed = 0;
+      this.caught = false;
+      this.tonguePhase = Math.random() * Math.PI * 2;
+      this.speechTimer = 0;
+      this.speech = "Sssss... I SEE YOU.";
+
+      this.quotes = [
+        "Sssss... I SEE YOU.",
+        "Why are you running so slow?",
+        "Bro really thinks dodging works.",
+        "Your cursor smells tasty.",
+        "Nice try. Moving left again?",
+        "I am right behind you.",
+        "Stop feeding me your cursor.",
+        "You have excellent panic technique."
+      ];
+
+      const w = canvas.width, h = canvas.height;
+      this.head = {
+        x: rand(w * 0.12, w * 0.38),
+        y: rand(h * 0.25, h * 0.72)
+      };
+
+      this.segLen = 11;
+      this.segs = [];
+      const initialAngle = rand(-0.5, 0.5);
+      for (let i = 0; i < 42; i++) {
+        this.segs.push({
+          x: this.head.x - Math.cos(initialAngle) * i * this.segLen,
+          y: this.head.y - Math.sin(initialAngle) * i * this.segLen,
+          phase: Math.random() * Math.PI * 2
+        });
+      }
+
+      this.angle = initialAngle;
+      this.speed = state.judgeMode ? 2.05 : 1.35;
+      this.maxSpeed = state.judgeMode ? 5.2 : 4.1;
+
+      this.loop = this.loop.bind(this);
+      this.raf = requestAnimationFrame(this.loop);
+    }
+
+    updateBody(dt, targetX, targetY, now) {
+      const head = this.segs[0];
+      const dx = targetX - head.x;
+      const dy = targetY - head.y;
+      const distance = Math.hypot(dx, dy) || 1;
+
+      // Smooth steering. The old version turned too aggressively and
+      // recalculated every body segment with a strong wave, which caused
+      // visible shaking. Keep the head movement calm and let the body follow.
+      const targetAngle = Math.atan2(dy, dx);
+      let turn = targetAngle - this.angle;
+      while (turn > Math.PI) turn -= Math.PI * 2;
+      while (turn < -Math.PI) turn += Math.PI * 2;
+
+      const turnRate = 0.035 + Math.min(0.018, this.elapsed * 0.0015);
+      this.angle += turn * turnRate * dt;
+
+      const speedBoost = Math.max(0, 600 - distance) / 600;
+      const speed = Math.min(
+        this.maxSpeed,
+        this.speed + this.elapsed * 0.035 + speedBoost * 1.45
+      );
+
+      head.x += Math.cos(this.angle) * speed * dt;
+      head.y += Math.sin(this.angle) * speed * dt;
+
+      // Soft boundary steering instead of snapping/reflecting the head.
+      const margin = 50;
+      if (head.x < margin) this.angle += 0.045 * dt;
+      if (head.x > this.canvas.width - margin) this.angle -= 0.045 * dt;
+      if (head.y < margin) this.angle += 0.045 * dt;
+      if (head.y > this.canvas.height - margin) this.angle -= 0.045 * dt;
+
+      head.x = clamp(head.x, 12, this.canvas.width - 12);
+      head.y = clamp(head.y, 12, this.canvas.height - 12);
+
+      // Stable follow-chain. Each segment eases toward a point behind the
+      // previous segment instead of being teleported sideways every frame.
+      // This is what removes the shaking while preserving a natural slither.
+      const follow = 0.30;
+      for (let i = 1; i < this.segs.length; i++) {
+        const p = this.segs[i - 1];
+        const c = this.segs[i];
+        const dx2 = p.x - c.x;
+        const dy2 = p.y - c.y;
+        const d2 = Math.hypot(dx2, dy2) || 1;
+        const dirX = dx2 / d2;
+        const dirY = dy2 / d2;
+
+        const desiredX = p.x - dirX * this.segLen;
+        const desiredY = p.y - dirY * this.segLen;
+
+        c.x += (desiredX - c.x) * follow;
+        c.y += (desiredY - c.y) * follow;
+      }
+    }
+
+    drawBody(ctx, now) {
+      // Draw from tail to head so the head sits naturally above the body.
+      for (let i = this.segs.length - 1; i >= 0; i--) {
+        const s = this.segs[i];
+        const t = i / (this.segs.length - 1);
+        const radius = 16 - t * 9;
+
+        const prev = this.segs[Math.max(0, i - 1)];
+        const next = this.segs[Math.min(this.segs.length - 1, i + 1)];
+        const tangent = Math.atan2(prev.y - next.y, prev.x - next.x) + Math.sin(now * 0.003 + i * 0.42) * 0.018;
+
+        ctx.save();
+        ctx.translate(s.x, s.y);
+        ctx.rotate(tangent);
+
+        // Dark outline makes the snake readable against the FEAR.EXE UI.
+        ctx.fillStyle = 'rgba(0,0,0,.85)';
+        ctx.beginPath();
+        ctx.ellipse(0, 0, radius + 2, radius * 0.72 + 2, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Alternating green scales.
+        ctx.fillStyle = i % 3 === 0 ? '#78c93b' : (i % 2 ? '#4f9c2c' : '#619f32');
+        ctx.beginPath();
+        ctx.ellipse(0, 0, radius, radius * 0.72, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Scale pattern: tiny dark chevrons and highlight.
+        ctx.strokeStyle = 'rgba(17,42,12,.72)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(-radius * .65, -radius * .15);
+        ctx.quadraticCurveTo(0, radius * .45, radius * .65, -radius * .15);
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(215,255,180,.34)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(-radius * .45, -radius * .32);
+        ctx.lineTo(radius * .15, -radius * .5);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+    }
+
+    drawHead(ctx, now) {
+      const h = this.segs[0];
+      const neck = this.segs[1] || { x: h.x - Math.cos(this.angle), y: h.y - Math.sin(this.angle) };
+      const headAngle = Math.atan2(h.y - neck.y, h.x - neck.x);
+
+      ctx.save();
+      ctx.translate(h.x, h.y);
+      ctx.rotate(headAngle);
+
+      // Neck shadow.
+      ctx.fillStyle = 'rgba(0,0,0,.85)';
+      ctx.beginPath();
+      ctx.ellipse(-3, 0, 22, 15, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Wedge-like snake head.
+      ctx.fillStyle = '#6dbb37';
+      ctx.beginPath();
+      ctx.moveTo(22, 0);
+      ctx.quadraticCurveTo(8, -17, -13, -11);
+      ctx.quadraticCurveTo(-18, 0, -13, 11);
+      ctx.quadraticCurveTo(8, 17, 22, 0);
+      ctx.fill();
+
+      ctx.strokeStyle = '#1c4014';
+      ctx.lineWidth = 1.3;
+      ctx.stroke();
+
+      // Face center ridge.
+      ctx.strokeStyle = 'rgba(224,255,196,.35)';
+      ctx.beginPath();
+      ctx.moveTo(-8, -8);
+      ctx.quadraticCurveTo(5, 0, -8, 8);
+      ctx.stroke();
+
+      // Eyes.
+      const eyeColor = state.gamePhase >= 3 ? '#ff3045' : '#e0d35a';
+      [-1, 1].forEach(side => {
+        ctx.fillStyle = '#111';
+        ctx.beginPath();
+        ctx.ellipse(6, side * 7, 5.3, 5.3, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = eyeColor;
+        ctx.beginPath();
+        ctx.ellipse(7, side * 7, 3.7, 4.2, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#080808';
+        ctx.beginPath();
+        ctx.ellipse(8, side * 7, 1.15, 3.1, 0, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Forked tongue.
+      this.tonguePhase += 0.035;
+      const pulse = (Math.sin(this.tonguePhase) + 1) / 2;
+      const tongueLength = 12 + pulse * (state.gamePhase >= 3 ? 30 : 20);
+
+      ctx.strokeStyle = '#e34b62';
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(20, 0);
+      ctx.quadraticCurveTo(
+        28 + tongueLength * .25,
+        Math.sin(now * .009) * 1.2,
+        20 + tongueLength,
+        0
+      );
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(20 + tongueLength, 0);
+      ctx.lineTo(27 + tongueLength, -4);
+      ctx.moveTo(20 + tongueLength, 0);
+      ctx.lineTo(27 + tongueLength, 4);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    loop(ts) {
+      if (this.failed) return;
+
+      const dt = clamp((ts - this.lastTS) / 16.67, 0.1, 3);
+      this.lastTS = ts;
+      this.elapsed += dt / 60;
+
+      const ptr = getPtr(this.canvas);
+      const ctx = this.ctx;
+      const w = this.canvas.width, h = this.canvas.height;
+
+      this.speechTimer += dt;
+      if (this.speechTimer > 155) {
+        this.speechTimer = 0;
+        this.speech = this.quotes[Math.floor(Math.random() * this.quotes.length)];
+      }
+
+      if (this.elapsed > (state.judgeMode ? 0.8 : 2.2)) {
+        this.updateBody(dt, ptr.x, ptr.y, ts);
+      } else {
+        // Let it enter and reveal itself before hunting.
+        this.updateBody(
+          dt,
+          ptr.x + Math.cos(ts * .0007) * 170,
+          ptr.y + Math.sin(ts * .0007) * 130,
+          ts
+        );
+      }
+
+      const head = this.segs[0];
+      const distance = dist(head.x, head.y, ptr.x, ptr.y);
+
+      if (this.elapsed > 1.4 && !this.caught && distance < 34) {
+        this.caught = true;
+        this.failed = true;
+        fearAudio.horrorHit();
+        endArenaGame(false);
+        return;
+      }
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Subtle shadow under the creature.
+      ctx.save();
+      ctx.globalAlpha = .28;
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.ellipse(head.x - 12, head.y + 15, 55, 15, this.angle, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      this.drawBody(ctx, ts);
+      this.drawHead(ctx, ts);
+      drawSpeechBubble(ctx, head.x, head.y, this.speech, head.x > w * .6);
+
+      this.raf = requestAnimationFrame(this.loop);
+    }
+
+    destroy() {
+      cancelAnimationFrame(this.raf);
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+  }
+
+  // ---- 3. SPIDER GAME ----
+  // Webs increase with the fear phase. Hovering the cursor over a web
+  // clears it. The game ONLY ends when the screen is genuinely webbed.
+  class SpiderGame {
+    constructor(canvas) {
+      this.canvas = canvas;
+      this.ctx = canvas.getContext('2d');
+      this.failed = false;
+      this.webbed = false;
+      this.raf = null;
+      this.lastTS = performance.now();
+      this.webs = [];
+
+      // Procedural spider: always visible and moves around the web field.
+      this.spider = {
+        x: canvas.width * 0.5,
+        y: canvas.height * 0.5,
+        tx: canvas.width * 0.5,
+        ty: canvas.height * 0.5,
+        angle: 0,
+        legPhase: 0
+      };
+
+      // These are deliberately high. A few webs must NEVER end the game.
+      this.maxWebs = state.judgeMode ? 95 : 140;
+
+      this.spawnTimer = 0;
+      this.spawnInterval = state.judgeMode ? 1.8 : 4.5;
+
+      this.speech = "Hover over it. It will disappear. Probably.";
+      this.speechTimer = 0;
+      this.quotes = [
+        "Hover over it. It will disappear. Probably.",
+        "Nice. You found one.",
+        "Housekeeping protocol accepted.",
+        "One less web. Congratulations.",
+        "Keep hovering. This is your job now.",
+        "Productivity level: technically active.",
+        "The spider is getting ambitious.",
+        "You cannot clean forever."
+      ];
+
+      // Start with a visible web cluster so the arena never looks empty.
+      for (let i = 0; i < 10; i++) this.addWeb();
+
+      this.loop = this.loop.bind(this);
+      this.onMove = this.onMove.bind(this);
+      this.onTouch = this.onTouch.bind(this);
+
+      canvas.addEventListener('mousemove', this.onMove, { passive: true });
+      canvas.addEventListener('touchstart', this.onTouch, { passive: true });
+
+      this.raf = requestAnimationFrame(this.loop);
+    }
+
+    getLevel() {
+      return clamp(Number(state.gamePhase) || 1, 1, 4);
+    }
+
+    addWeb(force = false) {
+      const w = this.canvas.width, h = this.canvas.height;
+      if (w < 160 || h < 160) return;
+      if (!force && this.webs.length >= this.maxWebs) return;
+
+      const level = this.getLevel();
+      const ranges = {
+        1: [38, 62],
+        2: [48, 78],
+        3: [58, 96],
+        4: [72, 125]
+      };
+      const [minSize, maxSize] = ranges[level];
+      const size = rand(minSize, maxSize);
+
+      this.webs.push({
+        x: rand(size + 18, w - size - 18),
+        y: rand(size + 18, h - size - 18),
+        size,
+        opacity: 0,
+        target: level >= 3 ? 0.82 : 0.70,
+        spokes: Math.floor(rand(6, 10)),
+        rings: Math.floor(rand(4, 7)),
+        rot: Math.random() * Math.PI
+      });
+    }
+
+    onMove(e) {
+      if (this.webbed) return;
+      const r = this.canvas.getBoundingClientRect();
+      this.cleanWeb(e.clientX - r.left, e.clientY - r.top);
+    }
+
+    onTouch(e) {
+      if (this.webbed) return;
+      const r = this.canvas.getBoundingClientRect();
+      const t = e.touches[0];
+      if (t) this.cleanWeb(t.clientX - r.left, t.clientY - r.top);
+    }
+
+    cleanWeb(mx, my) {
+      if (this.webbed) return;
+
+      let cleaned = false;
+      this.webs = this.webs.filter(web => {
+        // Hovering over the web clears it. No click is needed.
+        if (dist(mx, my, web.x, web.y) <= web.size * 1.05) {
+          cleaned = true;
+          return false;
+        }
+        return true;
+      });
+
+      if (cleaned) {
+        this.speech = this.quotes[Math.floor(Math.random() * this.quotes.length)];
+        this.speechTimer = 0;
+        showSysMsg("WEB CLEARED. ENJOY THE PEACE.");
+      }
+    }
+
+    getCoverage() {
+      // Estimate actual screen coverage with a grid.
+      // This prevents the game from ending just because N webs exist.
+      const w = this.canvas.width, h = this.canvas.height;
+      const cols = 14, rows = 8;
+      let covered = 0;
+
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          const cx = (col + 0.5) * w / cols;
+          const cy = (row + 0.5) * h / rows;
+
+          if (this.webs.some(web =>
+            dist(cx, cy, web.x, web.y) <= web.size * 1.08
+          )) {
+            covered++;
+          }
+        }
+      }
+
+      return covered / (cols * rows);
+    }
+
+    beginWebbedEnding() {
+      if (this.webbed || this.failed) return;
+
+      this.webbed = true;
+      this.speech = "Too many webs. Housekeeping has failed.";
+
+      try { fearAudio.horrorHit(); } catch (e) {}
+
+      const w = this.canvas.width, h = this.canvas.height;
+
+      // Fill the remaining visual gaps. This is the GAME OVER scene,
+      // not the normal gameplay state.
+      const cols = 8, rows = 6;
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          const cx = (col + 0.5) * w / cols;
+          const cy = (row + 0.5) * h / rows;
+
+          const size = rand(100, 165);
+          this.webs.push({
+            x: clamp(cx + rand(-24, 24), size * .55, w - size * .55),
+            y: clamp(cy + rand(-20, 20), size * .55, h - size * .55),
+            size,
+            opacity: 1,
+            target: 1,
+            spokes: Math.floor(rand(7, 11)),
+            rings: Math.floor(rand(5, 8)),
+            rot: Math.random() * Math.PI
+          });
+        }
+      }
+
+      const overlay = document.getElementById('web-coverage-overlay');
+      if (overlay) {
+        overlay.innerHTML = `
+          <h3 style="font-size:clamp(34px,6vw,72px);font-weight:900;line-height:.95;">
+            GETTING<br>WEBBED
+          </h3>
+          <p style="font-family:var(--mono);font-size:13px;color:var(--accent);margin-top:14px;letter-spacing:.12em;">
+            ERROR: SCREEN COVERAGE CRITICAL
+          </p>
+          <p style="font-family:var(--mono);font-size:12px;color:var(--text-muted);margin-top:8px;">
+            YOU ARE NOW PART OF THE WEBSITE.
+          </p>
+        `;
+        overlay.style.opacity = '1';
+      }
+
+      // Keep the fully webbed scene visible before moving to the report.
+      setTimeout(() => {
+        if (!this.failed) {
+          this.failed = true;
+          endArenaGame(false);
+        }
+      }, 2400);
+    }
+
+    loop(ts) {
+      if (this.failed) return;
+
+      const dt = clamp((ts - this.lastTS) / 16.67, 0.1, 3);
+      this.lastTS = ts;
+      const w = this.canvas.width, h = this.canvas.height;
+      const ctx = this.ctx;
+      const level = this.getLevel();
+
+      // Slow at first, increasingly aggressive later.
+      const intervals = {
+        1: state.judgeMode ? 1.8 : 4.5,
+        2: state.judgeMode ? 1.4 : 3.1,
+        3: state.judgeMode ? 1.0 : 2.0,
+        4: state.judgeMode ? 0.65 : 1.0
+      };
+
+      this.spawnInterval = intervals[level];
+      this.spawnTimer += dt / 60;
+
+      if (this.spawnTimer >= this.spawnInterval &&
+          this.webs.length < this.maxWebs) {
+        this.spawnTimer = 0;
+
+        // More webs per spawn as the level rises.
+        const amount =
+          level >= 4 ? 3 :
+          level >= 3 ? (Math.random() > 0.25 ? 2 : 3) :
+          level >= 2 ? (Math.random() > 0.35 ? 2 : 1) : 1;
+
+        for (let i = 0; i < amount; i++) this.addWeb();
+      }
+
+      // CRITICAL FIX:
+      // There is NO "webs.length >= maxWebs => game over".
+      // The player can have 2, 3, 10, or 20 webs and continue playing.
+      // Game over requires high ACTUAL screen coverage.
+      const minimumWebsForEnd = {
+        1: 999, // level 1 cannot end from coverage
+        2: 35,
+        3: 48,
+        4: 62
+      }[level];
+
+      if (!this.webbed &&
+          this.webs.length >= minimumWebsForEnd &&
+          this.getCoverage() >= ({1: 1, 2: .82, 3: .88, 4: .93}[level])) {
+        this.beginWebbedEnding();
+      }
+
+      // Move the spider smoothly between web clusters.
+      const sp = this.spider;
+      if (dist(sp.x, sp.y, sp.tx, sp.ty) < 35) {
+        const targetWeb = this.webs[Math.floor(Math.random() * this.webs.length)];
+        if (targetWeb) {
+          sp.tx = clamp(targetWeb.x + rand(-35, 35), 45, w - 45);
+          sp.ty = clamp(targetWeb.y + rand(-35, 35), 45, h - 45);
+        } else {
+          sp.tx = rand(45, w - 45);
+          sp.ty = rand(45, h - 45);
+        }
+      }
+      const sdx = sp.tx - sp.x, sdy = sp.ty - sp.y;
+      sp.angle = Math.atan2(sdy, sdx);
+      const spd = 0.55 + level * 0.16;
+      sp.x = lerp(sp.x, sp.x + Math.cos(sp.angle) * spd * dt, 0.08 * dt);
+      sp.y = lerp(sp.y, sp.y + Math.sin(sp.angle) * spd * dt, 0.08 * dt);
+      sp.legPhase += 0.18 * dt;
+
+      ctx.clearRect(0, 0, w, h);
+
+      this.webs.forEach(web => {
+        web.opacity = web.opacity >= 1
+          ? 1
+          : lerp(web.opacity, web.target, 0.028 * dt);
+
+        ctx.save();
+        ctx.globalAlpha = web.opacity;
+        ctx.translate(web.x, web.y);
+        ctx.rotate(web.rot);
+        ctx.strokeStyle = 'rgba(200,200,225,0.78)';
+        ctx.lineWidth = level >= 3 ? 0.9 : 0.7;
+
+        for (let spoke = 0; spoke < web.spokes; spoke++) {
+          const a = (spoke / web.spokes) * Math.PI * 2;
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(
+            Math.cos(a) * web.size,
+            Math.sin(a) * web.size
+          );
+          ctx.stroke();
+        }
+
+        for (let ring = 1; ring <= web.rings; ring++) {
+          const rr = (ring / web.rings) * web.size;
+          ctx.beginPath();
+
+          for (let spoke = 0; spoke <= web.spokes; spoke++) {
+            const a = (spoke / web.spokes) * Math.PI * 2;
+            const wobble = Math.sin(a * 3 + web.rot) * 2.2;
+            const px = Math.cos(a) * (rr + wobble);
+            const py = Math.sin(a) * (rr + wobble);
+
+            if (spoke === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+          }
+
+          ctx.closePath();
+          ctx.stroke();
+        }
+
+        ctx.restore();
+      });
+
+      // Draw the spider last so the creature is clearly visible above the webs.
+      ctx.save();
+      ctx.translate(sp.x, sp.y);
+      ctx.rotate(sp.angle);
+      ctx.lineCap = 'round';
+      ctx.lineWidth = 2.2;
+      ctx.strokeStyle = 'rgba(20,20,25,0.95)';
+      for (let leg = 0; leg < 8; leg++) {
+        const side = leg < 4 ? -1 : 1;
+        const row = leg % 4;
+        const phase = sp.legPhase + row * 0.75;
+        const lift = Math.sin(phase) * 5;
+        const forward = (row - 1.5) * 7;
+        const kneeX = forward + side * (18 + Math.abs(Math.sin(phase)) * 3);
+        const kneeY = side * (12 + lift * 0.35);
+        const footX = forward + side * 29;
+        const footY = side * (19 + lift);
+        ctx.beginPath();
+        ctx.moveTo(0, side * 5);
+        ctx.quadraticCurveTo(kneeX, kneeY, footX, footY);
+        ctx.stroke();
+      }
+      ctx.fillStyle = '#15151a';
+      ctx.beginPath(); ctx.ellipse(-6, 0, 11, 13, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#24242b';
+      ctx.beginPath(); ctx.ellipse(8, 0, 9, 8, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#d9d9df';
+      ctx.beginPath(); ctx.arc(10, -3, 1.6, 0, Math.PI * 2); ctx.arc(10, 3, 1.6, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+
+      if (this.webs.length > 0) {
+        const leadWeb = this.webs[0];
+        drawSpeechBubble(
+          ctx,
+          leadWeb.x,
+          leadWeb.y,
+          this.speech,
+          leadWeb.x > w * 0.6
+        );
+      }
+
+      this.speechTimer += dt;
+      if (this.speechTimer > 360) {
+        this.speechTimer = 0;
+        this.speech =
+          this.quotes[Math.floor(Math.random() * this.quotes.length)];
+      }
+
+      this.raf = requestAnimationFrame(this.loop);
+    }
+
+    destroy() {
+      cancelAnimationFrame(this.raf);
+      this.canvas.removeEventListener('mousemove', this.onMove);
+      this.canvas.removeEventListener('touchstart', this.onTouch);
+
+      const overlay = document.getElementById('web-coverage-overlay');
+      if (overlay) {
+        overlay.style.opacity = '0';
+        overlay.innerHTML = `
+          <h3 style="font-size:clamp(32px,6vw,68px);font-weight:900;">
+            WEB COVERAGE:<br>100%
+          </h3>
+          <p style="font-family:var(--mono);font-size:13px;color:var(--text-muted);margin-top:10px;">
+            YOU ARE NOW PART OF THE WEBSITE.
+          </p>
+        `;
+      }
+
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+  }
+
+  // ---- 4. PROCEDURAL CANVAS LIZARD GAME ----
+  // Smooth, low-jitter lizard. The creature crawls with damped steering,
+  // a body chain, subtle leg steps, and short tongue strikes.
+  class LizardGame {
+    constructor(canvas) {
+      this.canvas = canvas;
+      this.ctx = canvas.getContext('2d');
+      this.failed = false;
+      this.raf = null;
+      this.lastTS = performance.now();
+      this.elapsed = 0;
+
+      this.lx = rand(canvas.width * .25, canvas.width * .72);
+      this.ly = rand(canvas.height * .25, canvas.height * .72);
+      this.vx = 0;
+      this.vy = 0;
+      this.angle = rand(-Math.PI, Math.PI);
+
+      this.speed = state.judgeMode ? 1.15 : 0.68;
+      this.maxSpeed = state.judgeMode ? 2.45 : 1.75;
+
+      this.walkPhase = Math.random() * Math.PI * 2;
+      this.tonguePhase = Math.random() * Math.PI * 2;
+      this.speechTimer = 0;
+      this.caught = false;
+
+      this.speech = "It thinks you're food.";
+      this.quotes = [
+        "It thinks you're food.",
+        "Honestly, fair.",
+        "Stop waving the cursor around like bait.",
+        "Apparently your cursor looks delicious.",
+        "Tongue calibration: unnecessary.",
+        "The lizard has excellent aim. Unfortunately.",
+        "Please stop advertising yourself as lunch."
+      ];
+
+      // Keep the lizard body normal and make ONLY the tail very short (~1 cm).
+      this.body = [];
+      for (let i = 0; i < 6; i++) {
+        this.body.push({
+          x: this.lx - Math.cos(this.angle) * i * 7.0,
+          y: this.ly - Math.sin(this.angle) * i * 7.0
+        });
+      }
+
+      // Separate tail: only two short segments, about 10-12 px total.
+      this.tail = [];
+      for (let i = 1; i <= 2; i++) {
+        this.tail.push({
+          x: this.body[this.body.length - 1].x -
+             Math.cos(this.angle) * i * 5.5,
+          y: this.body[this.body.length - 1].y -
+             Math.sin(this.angle) * i * 5.5
+        });
+      }
+
+      this.loop = this.loop.bind(this);
+      this.raf = requestAnimationFrame(this.loop);
+    }
+
+    loop(ts) {
+      if (this.failed) return;
+
+      const dt = clamp((ts - this.lastTS) / 16.67, 0.1, 2.5);
+      this.lastTS = ts;
+      this.elapsed += dt / 60;
+
+      const w = this.canvas.width;
+      const h = this.canvas.height;
+      const ptr = getPtr(this.canvas);
+      const ctx = this.ctx;
+
+      const dx = ptr.x - this.lx;
+      const dy = ptr.y - this.ly;
+      const distance = Math.hypot(dx, dy) || 1;
+
+      // Damped steering prevents the old rapid angle oscillation.
+      const targetAngle = Math.atan2(dy, dx);
+      let turn = targetAngle - this.angle;
+      while (turn > Math.PI) turn -= Math.PI * 2;
+      while (turn < -Math.PI) turn += Math.PI * 2;
+
+      this.angle += turn * (0.035 + Math.min(0.018, this.elapsed * 0.001)) * dt;
+
+      const targetSpeed = distance > 70
+        ? Math.min(this.maxSpeed, this.speed + this.elapsed * 0.045)
+        : 0.12;
+
+      const desiredVX = Math.cos(this.angle) * targetSpeed;
+      const desiredVY = Math.sin(this.angle) * targetSpeed;
+
+      this.vx = lerp(this.vx, desiredVX, 0.055 * dt);
+      this.vy = lerp(this.vy, desiredVY, 0.055 * dt);
+
+      this.lx += this.vx * dt;
+      this.ly += this.vy * dt;
+
+      const margin = 58;
+      if (this.lx <= margin || this.lx >= w - margin) this.vx *= -0.35;
+      if (this.ly <= margin || this.ly >= h - margin) this.vy *= -0.35;
+      this.lx = clamp(this.lx, margin, w - margin);
+      this.ly = clamp(this.ly, margin, h - margin);
+
+      // Smooth body chain.
+      this.body[0].x = this.lx - Math.cos(this.angle) * 10;
+      this.body[0].y = this.ly - Math.sin(this.angle) * 10;
+
+      for (let i = 1; i < this.body.length; i++) {
+        const prev = this.body[i - 1];
+        const p = this.body[i];
+        const targetX = prev.x - Math.cos(this.angle) * 7.2;
+        const targetY = prev.y - Math.sin(this.angle) * 7.2;
+        const amount = Math.min(0.48, 0.18 + i * 0.006) * dt;
+        p.x = lerp(p.x, targetX, amount);
+        p.y = lerp(p.y, targetY, amount);
+      }
+
+      // Very short tail follows the rear of the body.
+      let tailPrev = this.body[this.body.length - 1];
+      for (let i = 0; i < this.tail.length; i++) {
+        const p = this.tail[i];
+        const targetX = tailPrev.x - Math.cos(this.angle) * 5.5;
+        const targetY = tailPrev.y - Math.sin(this.angle) * 5.5;
+        const amount = Math.min(0.42, 0.22 + i * 0.02) * dt;
+        p.x = lerp(p.x, targetX, amount);
+        p.y = lerp(p.y, targetY, amount);
+        tailPrev = p;
+      }
+
+      this.walkPhase += (0.10 + Math.hypot(this.vx, this.vy) * 0.018) * dt;
+      this.tonguePhase += (state.judgeMode ? 0.10 : 0.065) * dt;
+
+      this.speechTimer += dt;
+      if (this.speechTimer > 210) {
+        this.speechTimer = 0;
+        this.speech = this.quotes[Math.floor(Math.random() * this.quotes.length)];
+      }
+
+      // Short tongue strike rather than constant tongue vibration.
+      const tonguePulse = (Math.sin(this.tonguePhase) + 1) / 2;
+      const tongueActive = tonguePulse > 0.80;
+      const tongueLength = 20 + Math.max(0, (tonguePulse - 0.80) / 0.20) *
+        (state.gamePhase >= 3 ? 55 : 38);
+
+      const tipX = this.lx + Math.cos(this.angle) * (35 + tongueLength);
+      const tipY = this.ly + Math.sin(this.angle) * (35 + tongueLength);
+
+      if (this.elapsed > 2.2 && !this.caught && tongueActive &&
+          dist(tipX, tipY, ptr.x, ptr.y) < 26) {
+        this.caught = true;
+        this.failed = true;
+        fearAudio.horrorHit();
+        endArenaGame(false);
+        return;
+      }
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Shadow.
+      ctx.save();
+      ctx.globalAlpha = 0.22;
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.ellipse(this.lx - 8, this.ly + 16, 44, 11, this.angle, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // Body and very short tail.
+      ctx.save();
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      // Normal body.
+      ctx.strokeStyle = '#182713';
+      ctx.lineWidth = 19;
+      ctx.beginPath();
+      ctx.moveTo(this.body[this.body.length - 1].x, this.body[this.body.length - 1].y);
+      for (let i = this.body.length - 2; i >= 0; i--) {
+        ctx.lineTo(this.body[i].x, this.body[i].y);
+      }
+      ctx.stroke();
+
+      ctx.strokeStyle = '#527b38';
+      ctx.lineWidth = 13;
+      ctx.stroke();
+
+      ctx.strokeStyle = 'rgba(190,230,135,.25)';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      // Tail is drawn separately and is deliberately tiny.
+      ctx.strokeStyle = '#182713';
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      ctx.moveTo(this.body[this.body.length - 1].x, this.body[this.body.length - 1].y);
+      for (let i = 0; i < this.tail.length; i++) {
+        ctx.lineTo(this.tail[i].x, this.tail[i].y);
+      }
+      ctx.stroke();
+
+      ctx.strokeStyle = '#527b38';
+      ctx.lineWidth = 5;
+      ctx.stroke();
+
+      ctx.restore();
+
+      // Four slow walking legs.
+      ctx.save();
+      ctx.translate(this.lx, this.ly);
+      ctx.rotate(this.angle);
+
+      const stepA = Math.sin(this.walkPhase);
+      const stepB = Math.sin(this.walkPhase + Math.PI);
+
+      ctx.strokeStyle = '#273d20';
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+
+      [
+        { x: -10, y: -8, reach: -17, lift: stepA },
+        { x: -4,  y:  8, reach: -15, lift: stepB },
+        { x:  8,  y: -8, reach:  16, lift: stepB },
+        { x: 11,  y:  8, reach:  17, lift: stepA }
+      ].forEach(leg => {
+        ctx.beginPath();
+        ctx.moveTo(leg.x, leg.y);
+        ctx.quadraticCurveTo(
+          leg.x - 4,
+          leg.y + leg.lift * 2.5,
+          leg.reach,
+          leg.y + leg.lift * 5 + (leg.y < 0 ? -5 : 5)
+        );
+        ctx.stroke();
+      });
+
+      // Torso.
+      ctx.fillStyle = '#355d2b';
+      ctx.beginPath();
+      ctx.ellipse(-4, 0, 23, 13, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = 'rgba(190,230,135,.25)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(-22, -3); ctx.quadraticCurveTo(-4, -10, 15, -3);
+      ctx.moveTo(-22, 3); ctx.quadraticCurveTo(-4, 10, 15, 3);
+      ctx.stroke();
+
+      // Neck + head.
+      ctx.fillStyle = '#47753a';
+      ctx.beginPath();
+      ctx.ellipse(17, 0, 14, 9.5, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#5d8b46';
+      ctx.beginPath();
+      ctx.ellipse(28, 0, 15, 10, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Eye.
+      ctx.fillStyle = '#e6d35b';
+      ctx.beginPath();
+      ctx.arc(32, -5, 4.4, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#111';
+      ctx.beginPath();
+      ctx.ellipse(33, -5, 1.35, 3.2, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Nostril.
+      ctx.fillStyle = '#152313';
+      ctx.beginPath();
+      ctx.arc(39, -1, 1.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Tongue.
+      if (tongueActive) {
+        const localLen = tongueLength;
+        ctx.strokeStyle = '#dc3852';
+        ctx.lineWidth = 2.2;
+        ctx.lineCap = 'round';
+
+        ctx.beginPath();
+        ctx.moveTo(41, 1);
+        ctx.lineTo(41 + localLen, 1);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(41 + localLen, 1);
+        ctx.lineTo(47 + localLen, -3);
+        ctx.moveTo(41 + localLen, 1);
+        ctx.lineTo(47 + localLen, 5);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+
+      drawSpeechBubble(ctx, this.lx, this.ly, this.speech, this.lx > w * 0.6);
+
+      this.raf = requestAnimationFrame(this.loop);
+    }
+
+    destroy() {
+      cancelAnimationFrame(this.raf);
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+  }
+
+  // Handle Resize
+  window.addEventListener('resize', () => {
+    if (state.currentScreen === 'experience' && activeExp) {
+      const arena = document.getElementById('exp-arena');
+      const canvas = document.getElementById(`canvas-${state.selectedFear}`);
+      if (canvas) { canvas.width = arena.clientWidth; canvas.height = arena.clientHeight; }
+    }
+  });
+
+})();
+</script>
+
+
+<audio id="snake-voice-audio" preload="auto"><source src="i-see-u.mp3" type="audio/mpeg"></audio>
+<script>
+(function () {
+  window.playSnakeVoice = function () {
+    const audio = document.getElementById('snake-voice-audio');
+    if (!audio) return;
+    audio.currentTime = 0;
+    const playPromise = audio.play();
+    if (playPromise && typeof playPromise.catch === 'function') {
+      playPromise.catch((err) => console.warn('Snake voice could not play:', err));
+    }
+  };
+})();
+</script>
+
+</body>
+</html>
